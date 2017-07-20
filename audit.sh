@@ -111,3 +111,38 @@ else
 		echo "6. /home - PASSED (/home is a separate partition with nodev option)"
 	fi
 fi
+
+checkstickybit=`df --local -P | awk {'if (NR1=1) print $6'} | xargs -l '{}' -xdev -type d \(--perm -0002 -a ! -perm -1000 \) 2> /dev/null`
+if [ -z "$checkstickybit" ]
+then
+	echo "7. Sticky Bit - FAILED (Sticky bit is not set on all world-writable directories)"
+else
+	echo "7. Sticky Bit - PASSED (Sticky bit is set on all world-writable directories)"
+fi
+
+checkcramfs=`/sbin/lsmod | grep cramfs`
+checkfreevxfs=`/sbin/lsmod | grep freevxfs`
+checkjffs2=`/sbin/lsmod | grep jffs2`
+checkhfs=`/sbin/lsmod | grep hfs`
+checkhfsplus=`/sbin/lsmod | grep hfsplus`
+checksquashfs=`/sbin/lsmod | grep squashfs`
+checkudf=`/sbin/lsmod | grep udf`
+
+if [ -n "$checkcramfs" -o -n "$checkfreevxfs" -o -n "$checkjffs2" -o -n "$checkhfs" -o -n "$checkhfsplus" -o -n "$checksquashfs" -o -n "$checkudf" ]
+then
+	echo "8. Legacy File Systems - FAILED (Not all legacy file systems are disabled i.e. cramfs, freevxfs, jffs2, hfs, hfsplus, squashfs and udf)"
+else
+	echo "8. Legacy File Systems - PASSED (All legacy file systems are disabled i.e. cramfs, freevxfs, jffs2, hfs, hfsplus, squashfs and udf)"
+fi
+
+printf "\n"
+printf "Services\n"
+
+services=( "telnet" "telnet-server" "rsh-server" "rsh" "ypserv" "ypbind" "tftp" "tftp-server" "xinetd" )
+
+count=1
+for eachservice in ${services[*]}
+do 
+	yum -q list installed $eachservice &>/dev/null && echo "$count. $eachservice - FAILED ($eachservice is Installed)" || echo "$count. $eachservice - PASSED ($eachservice is not installed) "
+	((count++))
+done 	
