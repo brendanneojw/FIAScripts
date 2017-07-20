@@ -146,3 +146,49 @@ do
 	yum -q list installed $eachservice &>/dev/null && echo "$count. $eachservice - FAILED ($eachservice is Installed)" || echo "$count. $eachservice - PASSED ($eachservice is not installed) "
 	((count++))
 done 	
+
+
+chkservices=( "chargen-stream" "daytime-dgram" "daytime-stream" "echo-dgram" "echo-stream" "tcpmux-server" ) 
+
+for eachchkservice in ${chkservices[*]}
+do 
+	checkchkservices=`systemctl status $eachchkservice | grep 'not-found'`
+	if [ -n "$checkchkservices" ]
+	then 
+		echo "$count. $eachchkservice - PASSED ($eachchkservice is not installed) "
+		((count++))
+	else 
+		echo "$count. $eachchkservice - FAILED ($eachchkservice is installed)"
+		((count++))
+	fi
+done 	
+
+printf "\n"
+printf "Special Purpose Services\n"
+
+checkumask=`grep ^umask /etc/sysconfig/init`
+
+if [ "$checkumask" == "umask 027" ]
+then 
+	echo "1. Umask - PASSED (umask is set to 027)"
+else 
+	echo "1. Umask - FAILED (umask is not set to 027)"
+fi
+
+checkxsystem=`ls -l /etc/systemd/system/default.target | grep graphical.target` #Must return empty
+checkxsysteminstalled=`rpm  -q xorg-x11-server-common`	#Must return something
+	
+if [ -z "$checkxsystem" -a -z "$checkxsysteminstalled" ]
+then 
+	echo "2. X Window System - FAILED (Xorg-x11-server-common is installed)"
+elif [ -z "$checkxsystem" -a -n "$checkxsysteminstalled" ]
+then
+	echo "2. X Window System - PASSED (Xorg-x11-server-common is not installed and is not the default graphical interface)"
+elif [ -n "$checkxsystem" -a -z "$checkxsysteminstalled" ]
+then
+	echo "2. X Window System - FAILED (Xorg-x11-server-common is not installed and is the default graphical interface)"
+else 
+	echo "2. X Window System - FAILED (Xorg-x11-server-common is installed and is the default graphical interface)"
+fi
+
+
