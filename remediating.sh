@@ -212,3 +212,138 @@ else
 		echo "3. nodev for /home - FIXED (Non-persistent)"
 	fi
 fi
+
+cdcheck=`grep cd /etc/fstab`
+if [ -n "$cdcheck" ]
+then
+	cdnodevcheck=`grep cdrom /etc/fstab | grep nodev`
+	if [ -z "$cdnodevcheck" ]
+	then
+		sed -ie 's:\(.*\)\(\s/cdrom\s\s*\)\(\w*\s*\)\(\w*\s*\)\(.*\):\1\2\3nodev,\4\5:' /etc/fstab
+		echo "nodev for /cdrom fixed"
+	fi
+
+	cdnosuidcheck=`grep cdrom /etc/fstab | grep suid`
+	if [ -z "$cdnosuidcheck" ]
+	then
+		sed -ie 's:\(.*\)\(\s/cdrom\s\s*\)\(\w*\s*\)\(\w*\s*\)\(.*\):\1\2\3nosuid,\4\5:' /etc/fstab
+		echo "nosuid for /cdrom fixed"
+	fi
+
+
+	cdnoexeccheck=`grep cdrom /etc/fstab | grep exec`
+	if [ -z "$cdnoexeccheck" ]
+	then
+		sed -ie 's:\(.*\)\(\s/cdrom\s\s*\)\(\w*\s*\)\(\w*\s*\)\(.*\):\1\2\3noexec,\4\5:' /etc/fstab
+		echo "noexec for /cdrom fixed"
+	fi
+
+fi
+
+checksticky=`df --local -P | awk {'if (NR!=1) print $6'} | xargs -l '{}' find '{}' -xdev -type d \( -perm -0002 -a ! -perm -1000 \) 2> /dev/null`
+
+if [ -n "$checksticky" ]
+then
+	df --local -P | awk {'if (NR!=1) print $6'} | xargs -l '{}' find '{}' -xdev -type d \( -perm -0002 -a ! -perm -1000 \) 2> /dev/null | xargs chmod o+t
+fi
+
+checkcramfs=`/sbin/lsmod | grep cramfs`
+checkfreevxfs=`/sbin/lsmod | grep freevxfs`
+checkjffs2=`/sbin/lsmod | grep jffs2`
+checkhfs=`/sbin/lsmod | grep hfs`
+checkhfsplus=`/sbin/lsmod | grep hfsplus`
+checksquashfs=`/sbin/lsmod | grep squashfs`
+checkudf=`/sbin/lsmod | grep udf`
+
+if [ -n "$checkcramfs" -o -n "$checkfreevxfs" -o -n "$checkjffs2" -o -n "$checkhfs" -o -n "$checkhfsplus" -o -n "$checksquashfs" -o -n "$checkudf" ]
+then
+	echo "install cramfs /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install freevxfs /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install jffs2 /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install hfs /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install hfsplus /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install squashfs /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install udf /bin/true" >> /etc/modprobe.d/CIS.conf
+fi
+
+checktelnetserver=`yum list telnet-server | grep "Available Packages"`
+if [ -n "$checktelnetserver" ]
+then
+	echo "Telnet-server is not installed, hence no action will be taken"
+else
+	echo "Telnet-server is installed, it will now be removed"
+	yum erase -y telnet-server
+fi 
+
+checktelnet=`yum list telnet | grep "Available Packages"`
+if [ -n "$checktelnet" ]
+then
+	echo "Telnet is not installed, hence no action will be taken"
+else
+	echo "Telnet is installed, it will now be removed"
+	yum erase -y telnet
+fi 
+
+
+checkrshserver=`yum list rsh-server | grep "Available Packages"`
+if [ -n "$checkrshserver" ]
+then
+	echo "Rsh-server is not installed, hence no action will be taken"
+else
+	echo "Rsh-server is installed, it will now be removed"
+	yum erase -y rsh-server
+fi 
+
+checkrsh=`yum list rsh | grep "Available Packages"`
+if [ -n "$checkrsh" ]
+then
+	echo "Rsh is not installed, hence no action will be taken"
+else
+	echo "Rsh is installed, it will now be removed"
+	yum erase -y rsh
+fi 
+
+checkypserv=`yum list ypserv | grep "Available Packages"`
+if [ -n "$checkypserv" ]
+then
+	echo "Ypserv is not installed, hence no action will be taken"
+else
+	echo "Ypserv is installed, it will now be removed"
+	yum erase -y ypserv
+fi 
+
+checkypbind=`yum list ypbind | grep "Available Packages"`
+if [ -n "$checkypbind" ]
+then
+	echo "Ypbind is not installed, hence no action will be taken"
+else
+	echo "Ypbind is installed, it will now be removed"
+	yum erase -y ypbind
+fi 
+
+checktftp=`yum list tftp | grep "Available Packages"`
+if [ -n "$checktftp" ]
+then
+	echo "Tftp is not installed, hence no action will be taken"
+else
+	echo "Tftp is installed, it will now be removed"
+	yum erase -y tftp
+fi
+
+checktftp=`yum list tftp-server| grep "Available Packages"`
+if [ -n "$checktftp-server" ]
+then
+	echo "Tftp-server is not installed, hence no action will be taken"
+else
+	echo "Tftp-server is installed, it will now be removed"
+	yum erase -y tftp-server
+fi 
+
+checkxinetd=`yum list xinetd | grep "Available Packages"`
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence no action will be taken"
+else
+	echo "Xinetd is installed, it will now be removed"
+	yum erase -y xinetd
+fi 
