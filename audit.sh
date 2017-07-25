@@ -112,12 +112,34 @@ else
 	fi
 fi
 
-checkstickybit=`df --local -P | awk {'if (NR1=1) print $6'} | xargs -l '{}' -xdev -type d \(--perm -0002 -a ! -perm -1000 \) 2> /dev/null`
-if [ -z "$checkstickybit" ]
+cdcheck=`grep cd /etc/fstab`
+if [ -n "$cdcheck" ]
 then
-	echo "7. Sticky Bit - FAILED (Sticky bit is not set on all world-writable directories)"
+	cdnodevcheck=`grep cdrom /etc/fstab | grep nodev`
+	cdnosuidcheck=`grep cdrom /etc/fstab | grep nosuid`
+	cdnosuidcheck=`grep cdrom /etc/fstab | grep noexec`
+	if [ -z "$cdnosuidcheck" ]
+	then
+			echo "7. /cdrom - FAILED (/cdrom not mounted with nodev option)"
+	elif [ -z "$cdnosuidcheck" ]
+	then
+			echo "7. /cdrom - FAILED (/cdrom not mounted with nosuid option)"
+	elif [ -z "$cdnosuidcheck" ]
+	then
+			echo "7. /cdrom - FAILED (/cdrom not mounted with noexec option)"
+	else
+		"7. /cdrom - PASSED (/cdrom is a mounted with nodev,nosuid,noexec option)"
+	fi
 else
-	echo "7. Sticky Bit - PASSED (Sticky bit is set on all world-writable directories)"
+	echo "7. /cdrom - PASSED (/cdrom not mounted)"
+fi
+ 
+checkstickybit=`df --local -P | awk {'if (NR1=1) print $6'} | xargs -l '{}' -xdev -type d \(--perm -0002 -a ! -perm -1000 \) 2> /dev/null`
+if [ -n "$checkstickybit" ]
+then
+	echo "8. Sticky Bit - FAILED (Sticky bit is not set on all world-writable directories)"
+else
+	echo "8. Sticky Bit - PASSED (Sticky bit is set on all world-writable directories)"
 fi
 
 checkcramfs=`/sbin/lsmod | grep cramfs`
@@ -238,7 +260,7 @@ if [ -n "$checkcups" -a -n "$checkcups1" ]
 	fi
 
 
-checkyumdhcp=`yum list dhcp | grep "Available package" `
+checkyumdhcp=`yum list dhcp | grep "Available Packages" `
 checkyumdhcpactive=`systemctl status dhcp | grep inactive `
 checkyumdhcpenable=`systemctl status dhcp | grep disabled `
 if [ -z "$checkyumdhcp" ]
