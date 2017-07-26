@@ -464,6 +464,7 @@ then
 		ln -s '/usr/lib/systemd/system/multi-user.target' '/etc/systemd/system/default.target'
 		yum remove -y xorg-x11-server-common
 	fi
+<<<<<<< HEAD
 fi
 
 checkavahi=`systemctl status avahi-daemon | grep inactive`
@@ -642,4 +643,6 @@ checkmta=`netstat -an | grep LIST | grep "127.0.0.1:25[[:space:]]"`
 if [ -z "$checkmta" ]
 then
 	sed -ie '116iinet_interfaces = localhost' /etc/postfix/main.cf
+=======
+>>>>>>> f4da9236b56a4466b9182a151648cc1bcfe86ee1
 fi
