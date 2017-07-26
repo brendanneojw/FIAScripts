@@ -406,4 +406,3 @@ else
 	echo "$count. MTA - FAILED (Mail Transfer Agent is not configured/installed)"
 fi
 
-

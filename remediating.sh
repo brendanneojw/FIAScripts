@@ -347,3 +347,299 @@ else
 	echo "Xinetd is installed, it will now be removed"
 	yum erase -y xinetd
 fi 
+
+checkxinetd=`yum list xinetd | grep "Available Packages"`
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence chargen-dgram is not installed"
+else	
+	checkchargendgram=`chkconfig --list chargen-dgram | grep "off"`
+	if [ -n "$checkchargendgram" ]
+	then
+		echo "chargen-dgram is not active, hence no action will be taken"
+	else
+		echo "chargen-dgram is active, it will now be disabled"
+		chkconfig chargen-dgram off
+	fi 
+fi 
+
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence chargen-stream is not installed"
+else	
+	checkchargenstream=`chkconfig --list chargen-stream | grep "off"`
+	if [ -n "$checkchargenstream" ]
+	then
+		echo "chargen-stream is not active, hence no action will be taken"
+	else
+		echo "chargen-stream is active, it will now be disabled"
+		chkconfig chargen-stream off
+	fi 
+fi 
+
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence daytime-dgram is not installed"
+else	
+	checkdaytimedgram=`chkconfig --list daytime-dgram | grep "off"`
+	if [ -n "$checkdaytimedgram" ]
+	then
+	echo "daytime-dgram is not active, hence no action will be taken"
+	else
+	echo "daytime-dgram is active, it will now be disabled"
+	chkconfig daytime-dgram off
+	fi 
+fi
+
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence daytime-stream is not installed"
+else	
+	checkdaytimestream=`chkconfig --list daytime-stream | grep "off"`
+	if [ -n "$checkdaytimestream" ]
+	then
+		echo "daytime-stream is not active, hence no action will be taken"
+	else
+		echo "daytime-stream is active, it will now be disabled"
+		chkconfig daytime-stream off
+	fi 
+fi 
+
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence echo-dgram is not installed"
+else	
+	checkechodgram=`chkconfig --list echo-dgram | grep "off"`
+	if [ -n "$checkechodgram" ]
+	then
+		echo "echo-dgram is not active, hence no action will be taken"
+	else
+		echo "echo-dgram is active, it will now be disabled"
+		chkconfig echo-dgram off
+	fi
+fi
+
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence echo-stream is not installed"
+else	
+	checkechostream=`chkconfig --list echo-stream | grep "off"`
+	if [ -n "$checkechostream" ]
+	then
+		echo "echo-stream is not active, hence no action will be taken"
+	else
+		echo "echo-stream is active, it will now be disabled"
+		chkconfig echo-stream off
+	fi 
+fi
+
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence tcpmux-server is not installed"
+else	
+	checktcpmuxserver=`chkconfig --list tcpmux-server | grep "off"`
+	if [ -n "$checktcpmuxserver" ]
+	then
+		echo "tcpmux-server is not active, hence no action will be taken"
+	else
+		echo "tcpmux-server is active, it will now be disabled"
+		chkconfig tcpmux-server off
+	fi 
+fi 
+
+umaskcheck=`grep ^umask /etc/sysconfig/init`
+if [ -z "$umaskcheck" ]
+then
+	echo "umask 027" > /etc/sysconfig/init
+fi
+
+checkxsystem=`ls -l /etc/systemd/system/default.target | grep graphical.target`
+checkxsysteminstalled=`rpm  -q xorg-x11-server-common | grep "not installed"`
+
+if [ -n "$checkxsystem" ]
+then
+	if [ -z "$checkxsysteminstalled" ]
+	then
+		rm '/etc/systemd/system/default.target'
+		ln -s '/usr/lib/systemd/system/multi-user.target' '/etc/systemd/system/default.target'
+		yum remove -y xorg-x11-server-common
+	fi
+fi
+
+checkavahi=`systemctl status avahi-daemon | grep inactive`
+checkavahi1=`systemctl status avahi-daemon | grep disabled`
+
+if [ -z "$checkavahi" -o -z "$checkavahi1" ]
+then
+	systemctl disable avahi-daemon.service avahi-daemon.socket
+	systemctl stop avahi-daemon.service avahi-daemon.socket
+	yum remove -y avahi-autoipd avahi-libs avahi
+fi
+
+checkcupsinstalled=`yum list cups | grep "Available Packages" `
+checkcups=`systemctl status cups | grep inactive`
+checkcups1=`systemctl status cups | grep disabled`
+if [ -z "$checkcupsinstalled" ]
+then
+	if [ -z "$checkcups" -o -z "$checkcups1" ]
+	then
+		systemctl stop cups
+		systemctl disable cups
+	fi
+fi
+checkyumdhcp=`yum list dhcp | grep "Available Packages" `
+checkyumdhcpactive=`systemctl status dhcp | grep inactive `
+checkyumdhcpenable=`systemctl status dhcp | grep disabled `
+if [ -z "$checkyumdhcp" ]
+then
+	if [ -z "$checkyumdhcpactive" -o -z "$checkyumdhcpenable" ]
+	then
+		systemctl disable dhcp
+		systemctl stop dhcp
+		yum -y erase dhcp
+	fi
+fi
+
+checkntpinstalled=`yum list ntp | grep "Installed"`
+
+if [ -z "$checkntpinstalled" ]
+then
+	yum install -y ntp
+fi
+checkntp1=`grep "^restrict default" /etc/ntp.conf`
+checkntp2=`grep "^restrict -6 default" /etc/ntp.conf`
+checkntp3=`grep "^server" /etc/ntp.conf`
+checkntp4=`grep "ntp:ntp" /etc/sysconfig/ntpd`
+
+if [ "$checkntp1" != "restrict default kod nomodify notrap nopeer noquery" ]
+then
+	sed -ie '8d' /etc/ntp.conf
+	sed -ie '8irestrict default kod nomodify notrap nopeer noquery' /etc/ntp.conf
+fi
+
+if [ "$checkntp2" != "restrict -6 default kod nomodify notrap nopeer noquery" ]
+then
+	sed -ie '9irestrict -6 default kod nomodify notrap nopeer noquery' /etc/ntp.conf
+fi
+
+if [ -z "$checkntp3" ]
+then
+	sed -ie '21iserver 10.10.10.10' /etc/ntp.conf #Assume 10.10.10.10 is NTP server
+fi
+
+if [ -z "$checkntp4" ]
+then
+	sed -ie '2d' /etc/sysconfig/ntpd
+	echo "1iOPTIONS=\"-u ntp:ntp -p /var/run/ntpd.pid\" " >> /etc/sysconfig/ntpd
+fi
+
+checkldapclientinstalled=`yum list openldap-clients | grep "Available Packages"`
+checkldapserverinstalled=`yum list openldap-servers | grep "Available Packages"`
+
+if [ -z "$checkldapclientinstalled" ]
+then
+	yum  -y erase openldap-clients
+fi
+
+if [ -z "$checkldapserverinstalled" ]
+then
+	yum -y erase openldap-servers
+fi
+
+checknfslock=`systemctl is-enabled nfs-lock | grep "disabled"`
+checknfssecure=`systemctl is-enabled nfs-secure | grep "disabled"`
+checkrpcbind=`systemctl is-enabled rpcbind | grep "disabled"`
+checknfsidmap=`systemctl is-enabled nfs-idmap | grep "disabled"`
+checknfssecureserver=`systemctl is-enabled nfs-secure-server | grep "disabled"`
+
+if [ -z "$checknfslock" ]
+then
+	systemctl disable nfs-lock
+fi
+
+if [ -z "$checknfssecure" ]
+then
+	systemctl disable nfs-secure
+fi
+
+if [ -z "$checkrpcbind" ]
+then
+	systemctl disable rpcbind
+fi
+
+if [ -z "$checknfsidmap" ]
+then
+	systemctl disable nfs-idmap
+fi
+
+if [ -z "$checknfssecureserver" ]
+then
+	systemctl disable nfs-secure-server
+fi
+
+checkyumdns=`yum list bind | grep "Available Packages" `
+checkdns=`systemctl status named | grep inactive`
+checkdns1=`systemctl status named | grep disabled`
+if [ -z "$checkyumdns" ]
+then
+	if [ -z "$checkdns" -o -z "$checkdns1" ]
+	then
+		systemctl stop named
+		systemctl disable named
+	fi
+fi
+
+checkyumftp=`yum list vsftpd | grep "Available Packages" `
+checkftp=`systemctl status vsftpd | grep inactive`
+checkftp1=`systemctl status vsftpd | grep disabled`
+if [ -z "$checkyumftp" ]
+then
+	if [ -z "$checkftp" -o -z "$checkftp1" ]
+	then
+		systemctl stop vsftpd
+		systemctl disable vsftpd
+	fi
+fi
+
+checkyumhttp=`yum list httpd | grep "Available Packages" `
+checkhttp=`systemctl status httpd | grep inactive`
+checkhttp1=`systemctl status httpd | grep disabled`
+if [ -z "$checkyumhttp" ]
+then
+	if [ -z "$checkhttp" -o -z "$checkhttp1" ]
+	then
+		systemctl stop httpd
+		systemctl disable httpd
+	fi
+fi
+
+checkyumssh=`yum list openssh | grep "Available Packages" `
+checkssh=`systemctl status sshd | grep inactive`
+checkssh1=`systemctl status sshd | grep disabled`
+if [ -z "$checkyumssh" ]
+then
+	if [ -z "$checkssh" -o -z "$checkssh1" ]
+	then
+		systemctl stop sshd
+		systemctl disable sshd
+	fi
+fi
+
+checkyumsnmp=`yum list net-snmp | grep "Available Packages" `
+checksnmp=`systemctl status snmpd | grep inactive`
+checksnmp1=`systemctl status snmpd | grep disabled`
+if [ -z "$checkyumsnmp" ]
+	then
+	if [ -z "$checksnmp" -o -z "$checsnmp1" ]
+	then
+		systemctl stop snmpd
+		systemctl disable snmpd
+	fi
+fi
+
+checkmta=`netstat -an | grep LIST | grep "127.0.0.1:25[[:space:]]"`
+
+if [ -z "$checkmta" ]
+then
+	sed -ie '116iinet_interfaces = localhost' /etc/postfix/main.cf
+fi
