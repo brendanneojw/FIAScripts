@@ -263,7 +263,7 @@ if [ -n "$checkcups" -a -n "$checkcups1" ]
 checkyumdhcp=`yum list dhcp | grep "Available Packages" `
 checkyumdhcpactive=`systemctl status dhcp | grep inactive `
 checkyumdhcpenable=`systemctl status dhcp | grep disabled `
-if [ -z "$checkyumdhcp" ]
+if [ -n "$checkyumdhcp" ]
 then 
 	echo "$count. DHCP Server - PASSED (DHCP is not installed) "
 	((count++))
