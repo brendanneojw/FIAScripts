@@ -286,11 +286,13 @@ else
 	fi
 fi
 
+checkntp=`yum list ntp | grep "Installed Packages" `
 checkntp1=`grep "^restrict default kod nomodify notrap nopeer noquery" /etc/ntp.conf`
 checkntp2=`grep "^restrict -6 default kod nomodify notrap nopeer noquery" /etc/ntp.conf` 
 checkntp3=`grep "^server" /etc/ntp.conf | grep server`
 checkntp4=`grep 'OPTIONS="-u ntp:ntp -p /var/run/ntpd.pid"' /etc/sysconfig/ntpd `
-
+if [ -n "$checkntp" ]
+then
 if [ -n "$checkntp1" ]
 then 
 	if [ -n "$checkntp2" ]
@@ -317,6 +319,10 @@ else
 	echo "$count. NTP - FAILED (Failed to implement restrict default kod nomodify notrap nopeer noquery)"
 	((count++))
 fi 
+else 
+	echo "$count. NTP - FAILED (NTP is not installed)"
+	((count++))
+fi
 
 checkldapclients=`yum list openldap-clients | grep 'Available Packages'`
 checkldapservers=`yum list openldap-servers | grep 'Available Packages'`
@@ -353,7 +359,7 @@ do
 	fi
 done 	
 
-standardservices=( "named" "vsftpd" "httpd" "sshd" "snmpd") 
+standardservices=( "named" "vsftpd" "httpd" "squid.service" "snmpd") 
 
 
 for eachstandardservice in ${standardservices[*]}
