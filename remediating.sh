@@ -507,11 +507,18 @@ if [ -z "$checkntpinstalled" ]
 then
 	yum install -y ntp
 fi
+
+checkyumntp=`yum list ntp | grep "Available Packages"`
 checkntp1=`grep "^restrict default" /etc/ntp.conf`
 checkntp2=`grep "^restrict -6 default" /etc/ntp.conf`
 checkntp3=`grep "^server" /etc/ntp.conf`
 checkntp4=`grep "ntp:ntp" /etc/sysconfig/ntpd`
 
+if [ -n "$checkyumntp" ]
+then
+	yum install -y ntp
+fi
+	
 if [ "$checkntp1" != "restrict default kod nomodify notrap nopeer noquery" ]
 then
 	sed -ie '8d' /etc/ntp.conf
@@ -614,15 +621,15 @@ then
 	fi
 fi
 
-checkyumssh=`yum list openssh | grep "Available Packages" `
-checkssh=`systemctl status sshd | grep inactive`
-checkssh1=`systemctl status sshd | grep disabled`
-if [ -z "$checkyumssh" ]
+checkyumsquid=`yum list squid | grep "Available Packages" `
+checksquid=`systemctl status squid | grep inactive`
+checksquid1=`systemctl status squid | grep disabled`
+if [ -z "$checkyumsquid" ]
 then
-	if [ -z "$checkssh" -o -z "$checkssh1" ]
+	if [ -z "$checksquid" -o -z "$checksquid1" ]
 	then
-		systemctl stop sshd
-		systemctl disable sshd
+		systemctl stop squid
+		systemctl disable squid
 	fi
 fi
 
