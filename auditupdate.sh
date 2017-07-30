@@ -1097,9 +1097,11 @@ else
 	echo "Modify the System's Mandatory Access Controls Events - PASSED (Recording of modified system's mandatory access controls events is configured)"
 fi
 
-printf "\n\n"
-
+printf "\n"
+#-----------------------------------------------------------------------------------------------------------------
 #6.2.1.10
+printf "\n"
+echo -e "\e[4m6.2.1.10 : Collect Login and Logout Events\e[0m\n"
 chklogins=`grep logins /etc/audit/audit.rules`
 loginfail=`grep "\-w /var/log/faillog -p wa -k logins" /etc/audit/audit.rules`
 loginlast=`grep "\-w /var/log/lastlog -p wa -k logins" /etc/audit/audit.rules`
@@ -1113,6 +1115,8 @@ else
 fi
 
 #6.2.1.11
+printf "\n"
+echo -e "\e[4m6.2.1.11 : Collect Session Initiation Information\e[0m\n"
 chksession=`egrep 'wtmp|btmp|utmp' /etc/audit/audit.rules`
 sessionwtmp=`egrep "\-w /var/log/wtmp -p wa -k session" /etc/audit/audit.rules`
 sessionbtmp=`egrep "\-w /var/log/btmp -p wa -k session" /etc/audit/audit.rules`
@@ -1126,6 +1130,8 @@ else
 fi
 
 #6.2.1.12
+printf "\n"
+echo -e "\e[4m6.2.1.12 : Collect Discretionary Access Control Permission Modification Events\e[0m\n"
 chkpermission64=`grep perm_mod /etc/audit/audit.rules`
 permission1=`grep "\-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod" /etc/audit/audit.rules`
 permission2=`grep "\-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F
@@ -1146,6 +1152,8 @@ else
 fi
 
 #6.2.1.13
+printf "\n"
+echo -e "\e[4m6.2.1.13 : Collect Unsuccessful Unauthorized Access Attempts to Files\e[0m\n"
 chkaccess=`grep access /etc/audit/audit.rules`
 access1=`grep "\-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 - k access" /etc/audit/audit.rules`
 access2=`grep "\-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 - k access" /etc/audit/audit.rules`
@@ -1163,6 +1171,8 @@ else
 fi
 
 #6.2.1.14 Collect Use of Privileged Commands
+printf "\n"
+echo -e "\e[4m6.2.1.14 : Collect Use of Privileged Commands\e[0m\n"
 find / -xdev \( -perm -4000 -o -perm -2000 \) -type f | awk '{print "-a always,exit-F path=" $1 " -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged" }' > /tmp/1.log
 
 checkpriviledge=`cat /tmp/1.log`
@@ -1172,50 +1182,58 @@ checkpriviledgenotinfile=`grep -F -x -v -f /tmp/2.log /tmp/1.log`
 
 if [ -n "$checkpriviledgenotinfile" ]
 then
-	echo "FAIL - Privileged Commands not in audit"
+	echo "FAILED - Privileged Commands not in audit"
 else
-	echo "PASS - Privileged Commands in audit"
+	echo "PASSED - Privileged Commands in audit"
 fi
 
 rm /tmp/1.log
 rm /tmp/2.log
 
 #6.2.1.15 Collect Successful File System Mounts
+printf "\n"
+echo -e "\e[4m6.2.1.15 : Collect Successful File System Mounts\e[0m\n"
 bit64mountb64=`grep "\-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" /etc/audit/audit.rules`
 bit64mountb32=`grep "\-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" /etc/audit/audit.rules`
 bit32mountb32=`grep "\-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" /etc/audit/audit.rules`
 
 if [ -z "$bit64mountb64" -o -z "$bit64mountb32" -o -z "$bit32mountb32" ]
 then
-	echo "FAIL - To determine filesystem mounts" 
+	echo "FAILED - To determine filesystem mounts" 
 else
-	echo "PASS - To determine filesystem mounts"
+	echo "PASSED - To determine filesystem mounts"
 fi
 
 #6.2.1.16 Collect File Delection Events by User
+printf "\n"
+echo -e "\e[4m6.2.1.16 : Collect File Delection Events by User\e[0m\n"
 bit64delb64=`grep "\-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" /etc/audit/audit.rules`
 bit64delb32=`grep "\-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" /etc/audit/audit.rules`
 bit32delb32=`grep "\-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" /etc/audit/audit.rules`
 
 if [ -z "$bit64delb64" -o -z "$bit64delb32" -o -z "$bit32delb32" ]
 then
-	echo "FAIL - To determine the file delection event by user"
+	echo "FAILED - To determine the file delection event by user"
 else
-	echo "PASS - To determine the file delection event by user"
+	echo "PASSED - To determine the file delection event by user"
 fi
 
 #6.2.1.17 Collect Changes to System Administration Scope
+printf "\n"
+echo -e "\e[4m6.2.1.17 : Collect Changes to System Administrator Scope\e[0m\n"
 chkscope=`grep scope /etc/audit/audit.rules`
 sudoers='-w /etc/sudoers -p wa -k scope'
 
 if [ -z "$chkscope" -o "$chkscope" != "$sudoers" ]
 then
-	echo "FAIL - To unauthorize change to scope of system administrator activity"
+	echo "FAILED - To unauthorize change to scope of system administrator activity"
 else
-	echo "PASS - To unauthorize change to scope of system administrator activity"
+	echo "PASSED - To unauthorize change to scope of system administrator activity"
 fi
 
-#6.2.1.18 
+#6.2.1.18
+printf "\n"
+echo -e "\e[4m6.2.1.18 : Collect System Administrator Actions\e[0m\n"
 chkadminrules=`grep actions /etc/audit/audit.rules`
 adminrules='-w /var/log/sudo.log -p wa -k actions'
 
@@ -1227,6 +1245,8 @@ else
 fi
 
 #6.2.1.19
+printf "\n"
+echo -e "\e[4m6.2.1.19 : Collect Kernel Module Loading and Unloading\e[0m\n"
 chkmod1=`grep "\-w /sbin/insmod -p x -k modules" /etc/audit/audit.rules`
 chkmod2=`grep "\-w /sbin/rmmod -p x -k modules" /etc/audit/audit.rules`
 chkmod3=`grep "\-w /sbin/modprobe -p x -k modules" /etc/audit/audit.rules`
@@ -1240,6 +1260,8 @@ else
 fi
 
 #6.2.1.20
+printf "\n"
+echo -e "\e[4m6.2.1.20 : Make the Audit Configuration Immutable\e[0m\n"
 chkimmute=`grep "^-e 2" /etc/audit/audit.rules`
 immute='-e 2'
 
@@ -1251,6 +1273,8 @@ else
 fi
 
 #6.2.1.21
+printf "\n"
+echo -e "\e[4m6.2.1.21 : Configure logrotate\e[0m\n"
 chkrotate1=`grep "/var/log/messages" /etc/logrotate.d/syslog`
 chkrotate2=`grep "/var/log/secure" /etc/logrotate.d/syslog`
 chkrotate3=`grep "/var/log/maillog" /etc/logrotate.d/syslog`
@@ -1465,223 +1489,7 @@ else
 	((count++))
 fi
 printf "\n"
-
-GREEN="\033[0;32m"
-RED="\033[0;31m"
-NC="\033[0m"
-bold=$(tput bold)
-normal=$(tput sgr0)
-count=1
-echo "============================================================"
-echo -e "\t${bold}7.$count Set Password Expiration Days${normal}"
-echo "------------------------------------------------------------"
-
-value=$(cat /etc/login.defs | grep "^PASS_MAX_DAYS" | awk '{ print $2 }')
-
-standard=90 
-
-if [ ! $value = $standard ]; then
-  echo "Current PASS_MAX_DAYS = $value"
-  echo "Result: FAILED! (PASS_MAX_DAYS should be set to less than 90 days)"
-  ((count++))
-elif [ $value = $standard ]; then
-  echo "Current Password Maximum = $value"
-  echo "Result: PASSED! (PASS_MAX_DAYS is set to less than 90 days)"
-  ((count++))
-else
-  echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
-   ((count++))
-fi
-#########################################################################
-printf "\n"
-echo "============================================================"
-echo -e "\t${bold}7.$count Set Password Change Minimum Number of Days${normal}"
-echo "------------------------------------------------------------"
-value=$(cat /etc/login.defs | grep "^PASS_MIN_DAYS" | awk '{ print $2 }')
-
-standard=7 
-
-if [ ! $value = $standard ]; then
-	echo "Current PASS_MIN_DAYS = $value"
-	echo "Result: FAILED! (PASS_MIN_DAYS should be set to more than 7 days)"
-	((count++))
-elif [ $value = $standard ]; then
-	echo "Current PASS_MIN_DAYS = $value"
-	echo "Result: PASSED! (PASS_MIN_DAYS is be set to more than 7 days)"
-	((count++))
-else
-	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
-   ((count++))
-fi
-#########################################################################
-printf "\n"
-echo "============================================================"
-echo -e "\t${bold}7.$count Set Password Expiring Warning Days${normal}"
-echo "------------------------------------------------------------"
-value=$(cat /etc/login.defs | grep "^PASS_WARN_AGE" | awk '{ print $2 }')
-
-standard=7 
-
-if [ ! $value = $standard ]; then
-	echo "Current PASS_WARN_AGE = $value"
-	echo "Result: FAILED! (PASS_WARN_AGE should be set to more than 7 days)"
-	((count++))
-elif [ $value = $standard ]; then
-	echo "Current PASS_WARN_AGE = $value"
-	echo "Result: PASSED! (PASS_WARN_AGE is be set to more than 7 days)"
-	((count++))
-else
-	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
-   ((count++))
-fi
-#########################################################################
-#7.4 Disable System Accounts
-printf "\n"
-echo "============================================================"
-echo -e "\t${bold}7.$count Disable System Accounts${normal}"
-echo "------------------------------------------------------------"
-current=$(egrep -v "^\+" /etc/passwd | awk -F: '($1!="root" && $1!="sync" && $1!="shutdown" && $1!="halt" && $3<1000 && $7!="/sbin/nologin" && $7!="/bin/false") { print $1 }')
-
-if [ -z "$current" ]; then
-	echo "Result: PASSED! (No system accounts can be accessed)"
-	((count++))
-elif [ ! -z "$current" ]; then
-	echo "Result: FAILED! (System account(s) can be accessed)"
-	((count++))
-else
-	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
-	((count++))
-fi
-#########################################################################
-printf "\n"
-echo "============================================================"
-echo -e "\t${bold}7.$count Set Default Group for root Account${normal}"
-echo "------------------------------------------------------------"
-
-current=$(grep "^root:" /etc/passwd | cut -f4 -d:)
-
-if [ "$current" == 0 ]; then
-        echo "Result: PASSED! (Default group for root configured correctly)"
-	((count++))
-else
-       echo "Result: FAILED! (Default group for root configured incorrectly)"
-	((count++))
-fi
-#########################################################################
-printf "\n"
-echo "============================================================"
-echo -e "\t${bold}7.$count Set Default umask for Users${normal}"
-echo "------------------------------------------------------------"
-
-current=$(egrep -h "\s+umask ([0-7]{3})" /etc/bashrc /etc/profile | awk '{print $2}')
-
-counter=0
-
-for line in ${current}
-do
-	if [ "${line}" != "077" ] 
-	then
-       		((counter++))	
-	fi
-done
-
-if [ ${counter} == 0 ]
-then 
-	 echo "Result: PASSED! (Umask is set to 077)"
-	((count++))
-else     
-	 echo "Result: FAILED! (Umask is not set to 077)"
-	((count++))
-fi
-#########################################################################
-printf "\n"
-echo "============================================================"
-echo -e "\t${bold}7.$count Lock Inactive User Accounts${normal}"
-echo "------------------------------------------------------------"
-
-current=$(useradd -D | grep INACTIVE | awk -F= '{print $2}')
-
-if [ "${current}" -le 30 ] && [ "${current}" -gt 0 ]
-then
-        echo "Result: PASSED! (Configured user accounts to be locked for 35 or more days)"
-		((count++))
-else
-		echo "Current number of days set = $current"
-        echo "Result: FAILED! (Did not configure user accounts to be locked for 35 or more days)"
-		((count++))
-fi
-#########################################################################
-printf "\n"
-echo "============================================================"
-echo -e "\t${bold}7.$count Ensure Password Fields Are Not Empty${normal}"
-echo "------------------------------------------------------------"
-
-current=$(cat /etc/shadow | awk -F: '($2 == "") { print $1 }')
-
-if [ "$current" = "" ];then
-	echo "Result: PASSED! (All users have password)"
-	((count++))
-	#accounts that were newly created without passwords are locked by default, their second field are "!!" thus, not empty
-else
-	echo "Accounts with no passwords : $current"
-    echo "Result: FAILED! (Not all users have password)"
-	((count++))
-fi
-#########################################################################
-printf "\n"
-echo "============================================================"
-echo -e "\t${bold}7.$count Verify No Legacy "+" Entries Exist in /etc/passwd, /etc/shadow\n\t and /etc/group files${normal}"
-echo "------------------------------------------------------------"
-
-passwd=$(grep '^+:' /etc/passwd) 
-shadow=$(grep '^+:' /etc/shadow)
-group=$(grep '^+:' /etc/group)
-
-if [ -z "$passwd" -a -z "$shadow" -a -z "$group" ];then
-	echo "Result: PASSED! (No legacy + Entries in all 3 files)"
-	((count++))
-elif [ -n "$passwd" -a -z "$shadow" -a -z "$group" ];then
-	echo "Result: FAILED! (Legacy + Entries in /etc/passwd)"
-	((count++))
-elif [ -n "$passwd" -a -n "$shadow" -a -z "$group" ];then
-	echo "Result: FAILED! (Legacy + Entries in /etc/passwd & /etc/shadow)"
-	((count++))
-elif [ -n "$passwd" -a -z "$shadow" -a -n "$group" ];then
-	echo "Result: FAILED! (Legacy + Entries in /etc/passwd & /etc/group)"
-	((count++))
-elif [ -z "$passwd" -a -n "$shadow" -a -z "$group" ];then
-	echo "Result: FAILED! (Legacy + Entries in /etc/shadow)"
-	((count++))
-elif [ -z "$passwd" -a -n "$shadow" -a -n "$group" ];then
-	echo "Result: FAILED! (Legacy + Entries in /etc/shadow & /etc/group)"
-	((count++))
-elif [ -z "$passwd" -a -n "$shadow" -a -n "$group" ];then
-	echo "Result: FAILED! (Legacy + Entries in /etc/shadow & /etc/group)"
-	((count++))
-elif [ -z "$passwd" -a -z "$shadow" -a -n "$group" ];then
-	echo "Result: FAILED! (Legacy + Entries in /etc/group)"
-	((count++))
-else
-	echo "Result: FAILED! (Legacy + Entries present in all 3 files)"
-	((count++))
-fi
-#########################################################################
-printf "\n"
-echo "============================================================"
-echo -e "\t${bold}7.$count Verify No UID 0 Accounts Exist Other Than Root${normal}"
-echo "------------------------------------------------------------"
-
-current=$(/bin/cat /etc/passwd | /bin/awk -F: '($3 ==0) { print $1 }')
-
-if [ "$current" = "root" ];then
-	echo "Result: PASSED! (No other user has a UID of 0)"
-	((count++))
-else
-	echo "Result: FAILED! (Another user has a UID of 0)"
-	((count++))
-fi
-#########################################################################
-printf "\n"
+#-----------------------------------------------------------------------------------------------------------------
 echo "============================================================"
 echo -e "\t${bold}7.$count Ensure root PATH Integrity${normal}"
 echo "------------------------------------------------------------"
@@ -2398,6 +2206,361 @@ fi
 echo ' '
 echo -e "\t\t\t${bold}End of verification.${normal}"
 echo ' '
+
+#!/bin/bash
+
+#10.1 Set SSH Protocol to 2 
+echo -e "\e[4m10.1 : Set SSH Protocol to 2\e[0m\n"
+chksshprotocol=`grep "^Protocol 2" /etc/ssh/sshd_config`
+
+if [ "$chksshprotocol" == "Protocol 2" ]
+then
+	echo "SSH (Protocol) - PASS (SSH Protocol is set to 2)"
+	printf "\n"
+else
+	echo "SSH (Protocol) - FAIL (SSH Protocol is not set to 2)"
+	printf "\n"
+fi
+
+#10.2 Set LogLevel to INFO
+echo -e "\e[4m10.2 : Set LogLevel to INFO\e[0m\n"
+chksshloglevel=`grep "^LogLevel INFO" /etc/ssh/sshd_config`
+
+if [ "$chksshloglevel" == "LogLevel INFO" ]
+then
+	echo "SSH (LogLevel) - PASS (LogLevel is set to INFO)"
+	printf "\n"
+else
+	echo "SSH (LogLevel) - FAIL (LogLevel is not set to INFO)"
+	printf "\n"
+fi
+
+#10.3 Set Permissions on /etc/ssh/shd_config
+echo -e "\e[4m10.3 : Set Permissions on /etc/ssh/shd_config\e[0m\n"
+deterusergroupownership=`/bin/ls -l /etc/ssh/sshd_config | grep "root root" | grep "\-rw-------"`
+
+if [ -n "deterusergroupownership" ] #-n means not null, -z means null
+then
+	echo "Ownership (User & Group)- PASS (Permissions are configured correctly)"
+	printf "\n"
+else
+	echo "Ownership (User & Group)- FAIL (Permissions are not configured correctly)"
+	printf "\n"
+fi
+
+#10.4 Disable SSH X11 Forwarding
+echo -e "\e[4m10.4 : Disable SSH X11 Forwarding\e[0m\n"
+chkx11forwarding=`grep "^X11Forwarding no" /etc/ssh/sshd_config`
+
+if [ "$chkx11forwarding" == "X11Forwarding no" ]
+then
+	echo "SSH (X11Forwarding) - PASS (SSH X11 Forwarding is disabled)"
+	printf "\n"
+else
+	echo "SSH (X11Forwarding) - FAIL (SSH X11 Forwarding is not disabled)"
+	printf "\n"
+fi
+
+#10.5 Set SSH MaxAuthTries to 4 or Less
+echo -e "\e[4m10.5 : Set SSH MaxAuthTries to 4 or Less\e[0m\n"
+maxauthtries=`grep "^MaxAuthTries 4" /etc/ssh/sshd_config`
+
+if [ "$maxauthtries" == "MaxAuthTries 4" ]
+then
+	echo "SSH (MaxAuthTries) - PASS (SSH MaxAuthTries is set to 4)"
+	printf "\n"
+else
+	echo "SSH (MaxAuthTries) - FAIL (SSH MaxAuthTries is not set to 4)"
+	printf "\n"
+fi
+
+#10.6 Set SSH IgnoreRhosts to Yes
+echo -e "\e[4m10.6 : Set SSH IgnoreRhosts to Yes\e[0m\n"
+ignorerhosts=`grep "^IgnoreRhosts yes" /etc/ssh/sshd_config`
+
+if [ "$ignorerhosts" == "IgnoreRhosts yes" ]
+then
+	echo "SSH (IgnoreRhosts) - PASS (SSH IgnoreRhosts is set to Yes)"
+	printf "\n"
+else
+	echo "SSH (IgnoreRhosts) - FAIL (SSH IgnoreRhosts is not set to Yes)"
+	printf "\n"
+fi
+
+#10.7 Set SSH HostbasedAuthentication to No
+echo -e "\e[4m10.7 : Set SSH HostbasedAuthentication to No\e[0m\n"
+hostbasedauthentication=`grep "^HostbasedAuthentication no" /etc/ssh/sshd_config`
+
+if [ "$hostbasedauthentication" == "HostbasedAuthentication no" ]
+then
+	echo "SSH (HostbasedAuthentication no) - PASS (SSH HostbasedAuthentication is set to No)"
+	printf "\n"
+else
+	echo "SSH (HostbasedAuthentication no) - FAIL (SSH HostbasedAuthentication is not set to No)"
+	printf "\n"
+fi
+
+#10.8 Disable SSH Root Login
+echo -e "\e[4m10.8 : Disable SSH Root Login\e[0m\n"
+chksshrootlogin=`grep "^PermitRootLogin" /etc/ssh/sshd_config`
+
+if [ "$chksshrootlogin" == "PermitRootLogin no" ]
+then
+	echo "SSH (Permit Root Login) - PASS (SSH Root Login is disabled)"
+	printf "\n"
+else
+	echo "SSH (Permit Root Login) - FAIL (SSH Root Login is not disabled)"
+	printf "\n"
+fi
+
+#10.9 Set SSH PermitEmptyPasswords to No
+echo -e "\e[4m10.9 : Set SSH PermitEmptyPasswords to No\e[0m\n"
+chksshemptypswd=`grep "^PermitEmptyPasswords" /etc/ssh/sshd_config`
+
+if [ "$chksshemptypswd" == "PermitEmptyPasswords no" ]
+then
+	echo "SSH (Permit Empty Passwords) - PASS (SSH PermitEmptyPasswords is set to No)"
+	printf "\n"
+else
+	echo "SSH (Permit Empty Passwords) - FAIL (SSH PermitEmptyPasswords is not set to No)"
+	printf "\n"
+fi
+
+#10.10 Use Only Approved cipher in Counter Mode
+echo -e "\e[4m10.10 : Set SSH PermitEmptyPasswords to No\e[0m\n"
+chksshcipher=`grep "Ciphers" /etc/ssh/sshd_config`
+
+if [ "$chksshcipher" == "Ciphers aes128-ctr,aes192-ctr,aes256-ctr" ]
+then
+	echo "SSH (Cipher) - PASS (Only Approved Cipher in Counter Mode are used)"
+	printf "\n"
+else
+	echo "SSH (Cipher) - FAIL (Only Approved Cipher in Counter Mode are not used)"
+	printf "\n"
+fi
+
+#10.11 Set Idle Timeout Interval for User Login
+echo -e "\e[4m10.11 : Set Idle Timeout Interval for User Login\e[0m\n"
+chksshcai=`grep "^ClientAliveInterval" /etc/ssh/sshd_config`
+chksshcacm=`grep "^ClientAliveCountMax" /etc/ssh/sshd_config`
+
+if [ "$chksshcai" == "ClientAliveInterval 300" ]
+then
+	echo "SSH (ClientAliveInterval) - PASS (ClientAliveInterval is set to the recommended value: 300)"
+	printf "\n"
+else
+	echo "SSH (ClientAliveInterval) - FAIL (ClientAliveInterval is not set to the recommended value: 300)"
+	printf "\n"
+fi
+
+if [ "$chksshcacm" == "ClientAliveCountMax 0" ]
+then
+	echo "SSH (ClientAliveCountMax) - PASS (ClientAliveCountMax is set to the recommended value: 0)"
+	printf "\n"
+else
+	echo "SSH (ClientAliveCountMax) - FAIL (ClientAliveCountMax is not set to the recommended: 0)"
+	printf "\n"
+fi
+
+#10.12 Limit Access via SSH		*NOTE: Manually created users and groups as question was not very specific*
+echo -e "\e[4m10.12 : Limit Access via SSH\e[0m\n"
+chksshalwusrs=`grep "^AllowUsers" /etc/ssh/sshd_config`
+chksshalwgrps=`grep "^AllowGroups" /etc/ssh/sshd_config`
+chksshdnyusrs=`grep "^DenyUsers" /etc/ssh/sshd_config`
+chksshdnygrps=`grep "^DenyGroups" /etc/ssh/sshd_config`
+
+if [ -z "$chksshalwusrs" -o "$chksshalwusrs" == "AllowUsers[[:space:]]" ]
+then
+	echo "SSH (AllowUsers) - FAIL"
+	printf "\n"
+else
+	echo "SSH (AllowUsers) - PASS"
+	printf "\n"
+fi
+
+if [ -z "$chksshalwgrps" -o "$chksshalwgrps" == "AllowGroups[[:space:]]" ]
+then
+	echo "SSH (AllowGroups) - FAIL"
+	printf "\n"
+else
+	echo "SSH (AllowGroups) - PASS"
+	printf "\n"
+fi
+
+if [ -z "$chksshdnyusrs" -o "$chksshdnyusrs" == "DenyUsers[[:space:]]" ]
+then
+	echo "SSH (DenyUsers) - FAIL"
+	printf "\n"
+else
+	echo "SSH (DenyUsers) - PASS"
+	printf "\n"
+fi
+
+if [ -z "$chksshdnygrps" -o "$chksshdnygrps" == "DenyGroups[[:space:]]" ]
+then
+	echo "SSH (DenyGroups) - FAIL"
+	printf "\n"
+else	
+	echo "SSH (DenyGroups) - PASS"
+	printf "\n"
+fi
+
+#10.13 Set SSH Banner
+echo -e "\e[4m10.13 : Set SSH Banner\e[0m\n"
+chksshbanner=`grep "Banner" /etc/ssh/sshd_config | awk '{ print $2 }'`
+
+if [ "$chksshbanner" == "/etc/issue.net" -o "$chksshbanner" == "/etc/issue" ]
+then
+	echo "SSH (Banner) - PASS (SSH Banner is set)"
+	printf "\n"
+else
+	echo "SSH (Banner) - FAIL (SSH Banner is not set)"
+	printf "\n"
+fi
+
+#11.1 Upgrade Password Hashing Algorithm to SHA-512
+echo -e "\e[4m11.1 : Upgrade Password Hashing Algorithm to SHA-512\e[0m\n"
+checkPassAlgo=$(authconfig --test | grep hashing | grep sha512)
+checkPassRegex=".*sha512"
+if [[ $checkPassAlgo =~ $checkPassRegex ]]
+then
+	#echo "The password hashing algorithm is set to SHA-512 as recommended."
+	echo "SHA-512 - PASS (Hashing algorithm set to SHA-512)"
+	printf "\n"
+else
+	#echo "Please ensure that the password hashing algorithm is set to SHA-512 as recommended."
+	echo "SHA-512 - FAIL (Hashing algorithm not set to SHA-512)"
+	printf "\n"
+fi 
+
+#11.2 Set Password Creation Requirement Parameters Using pam_pwquality
+echo -e "\e[4m11.2 : Set Password Creation Requirement Parameters Using pam_pwquality\e[0m\n"
+pampwconf=$(grep pam_pwquality.so /etc/pam.d/system-auth)
+correctpampwconf="password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type="
+if [[ $pampwconf == $correctpampwconf ]]
+then
+	#echo "Recommended settings is already configured."
+	echo "Password Creation Requirement Parameters (/etc/pam.d/system-auth) - PASS (Parameters set correctly)"
+	printf "\n"
+else
+	#echo "Please configure the settings again."
+	echo "Password Creation Requirement Parameters (/etc/pam.d/system-auth) - FAIL (Parameters not set correctly)"
+	printf "\n"
+fi
+
+minlen=$(grep "minlen" /etc/security/pwquality.conf)
+dcredit=$(grep "dcredit" /etc/security/pwquality.conf)
+ucredit=$(grep "ucredit" /etc/security/pwquality.conf)
+ocredit=$(grep "ocredit" /etc/security/pwquality.conf)
+lcredit=$(grep "lcredit" /etc/security/pwquality.conf)
+correctminlen="# minlen = 14"
+correctdcredit="# dcredit = -1"
+correctucredit="# ucredit = -1"
+correctocredit="# ocredit = -1"
+correctlcredit="# lcredit = -1"
+
+if [[ $minlen == $correctminlen && $dcredit == $correctdcredit && $ucredit == $correctucredit && $ocredit == $correctocredit && $lcredit == $correctlcredit ]]
+then
+	#echo "Recommended settings is already configured."
+	echo "Password Creation Requirement Parameters (/etc/security/pwquality.con) - PASS (Parameters set correctly)"
+	printf "\n"
+else
+	#echo "Please configure the settings again."
+	echo "Password Creation Requirement Parameters (/etc/security/pwquality.con) - FAIL (Parameters not set correctly)"
+	printf "\n"
+fi
+
+#11.3 Set Lockout for Failed Password Attempts
+echo -e "\e[4m11.3 : Set Lockout for Failed Password Attempts\e[0m\n"
+faillockpassword=$(grep "pam_faillock" /etc/pam.d/password-auth)
+faillocksystem=$(grep "pam_faillock" /etc/pam.d/system-auth)
+
+read -d '' correctpamauth << "BLOCK" 
+auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900
+auth        [default=die] pam_faillock.so authfail audit deny=5
+auth        sufficient    pam_faillock.so authsucc audit deny=5
+account     required      pam_faillock.so
+BLOCK
+
+if [[ $faillocksystem == "$correctpamauth" && $faillockpassword == "$correctpamauth" ]]
+then
+	#echo "Recommended settings is already configured."
+	echo "Set Lockout for Failed Password Attempts - PASS (Lockout for failed password attempts set)"
+	printf "\n"
+else
+	#echo "Please configure the settings again."
+	echo "Set Lockout for Failed Password Attempts - FAIL (Lockout for failed password attempts not set)"
+	printf "\n"
+fi
+
+#11.4  Limit Password Reuse
+echo -e "\e[4m11.4 : Limit Password Reuse\e[0m\n"
+pamlimitpw=$(grep "remember" /etc/pam.d/system-auth)
+if [[ $pamlimitpw == *"remember=5"* ]]
+then 
+	#echo "Recommended settings is already configured."
+	echo "Limit Password Reuse - PASS (Password Reuse Limit set)"
+	printf "\n"
+else
+	#echo "Please configure the settings again."
+	echo "Limit Password Reuse - FAIL (Password Reuse Limit not set)"
+	printf "\n"
+fi
+
+#11.5  Restrict root Login to System Console
+echo -e "\e[4m11.5 : Restrict root Login to System Console\e[0m\n"
+systemConsole="/etc/securetty"
+systemConsoleCounter=0
+while read -r line; do
+	if [ -n "$line" ]
+	then
+		[[ "$line" =~ ^#.*$ ]] && continue
+		if [ "$line" == "vc/1" ] || [ "$line" == "tty1" ]
+		then
+			systemConsoleCounter=$((systemConsoleCounter+1))
+		else
+			systemConsoleCounter=$((systemConsoleCounter+1))
+		fi
+	fi
+done < "$systemConsole"
+
+if [ $systemConsoleCounter != 2 ]
+then
+	#echo "Please configure the settings again."
+	echo "Restrict root Login to System Console - FAIL (Restrict root login to system console not set)"
+	printf "\n"
+else
+	#echo "Recommended settings is already configured."
+	echo "Restrict root Login to System Console - PASS (Restrict root login to system console set)"
+	printf "\n"
+fi
+
+#11.6 Restrict Access to the su Command
+echo -e "\e[4m11.6 : Restrict Access to the su Command\e[0m\n"
+pamsu=$(grep pam_wheel.so /etc/pam.d/su | grep required)
+if [[ $pamsu =~ ^#auth.*required ]]
+then
+	#echo "Please configure the settings again."
+	echo "Restrict Access to the su Command - FAIL (Specified line is commented)"
+	printf "\n"
+else
+	#echo "Recommended settings is already configured."
+	echo "Restrict Access to the su Command - PASS (Specified line is not commented)"
+	printf "\n"
+fi
+
+pamwheel=$(grep wheel /etc/group)
+if [[ $pamwheel =~ ^wheel.*root ]]
+then
+	#echo "Recommended settings is already configured."
+	echo "User is in wheel group - PASS (User is already added into the wheel group)"
+	printf "\n"
+else
+	#echo "Please configure the settings again."
+	echo "User is in wheel group - FAIL (User is not in the wheel group)"
+	printf "\n"
+fi
+
 
 # Force exit
 read -n 1 -s -r -p "Press any key to exit!"
