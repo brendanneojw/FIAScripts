@@ -1,4 +1,5 @@
 #!/bin/bash
+#!/bin/bash
 
 trap '' 2
 trap '' SIGTSTP
@@ -2100,7 +2101,7 @@ then
 
 	if [ -z "$rotate6" ]
 	then
-		echo "/var/log/cron" >> /etc/logrotate.d/syslog
+		echo "/var/log/cron" //etc/logrotate.d/syslog
 	fi
 	echo -e "\e[4m6.2.1.9 : Configure logrotate\e[0m\n"
 	echo "logrotate Configured"
@@ -2231,19 +2232,905 @@ do
 fi
 done
 echo "No UID 0 Accounts Exist Other Than Root"
+count=11
+echo "============================================================"
+echo -e "\t${bold}7.$count Ensure root PATH Integrity${normal}"
+echo "------------------------------------------------------------"
+
+check=0
+
+#Check for Empty Directory in PATH (::)
+if [ "`echo $PATH | grep ::`" != "" ]
+then
+	#echo "Empty Directory in PATH (::)"
+	((check++))
+fi
+
+#Check for Trailing : in PATH
+if [ "`echo $PATH | grep :$`" != "" ]
+then
+	#echo "Trailing : in PATH"
+	((check++))
+fi
+
+p=`echo $PATH | sed -e 's/::/:/' -e 's/:$//' -e 's/:/ /g'`
+set -- $p
+while [ "$1" != "" ]
+do
+	#Check if PATH contains .
+        if [ "$1" = "." ]
+        then
+		#echo "PATH contains ."
+		((check++))
+		shift
+		continue
+        fi
+	
+	#Check if PATH entry is a directory
+        if [ -d $1 ]
+        then
+                dirperm=`ls -ldH $1 | cut -f1 -d" "`
+                #Check if Group Write permission is set on directory
+		if [ `echo $dirperm | cut -c6` != "-" ]
+                then
+			#echo "Group Write permission set on directory $1"
+			((check++))
+                fi
+		#Check if Other Write permission is set on directory
+                if [ `echo $dirperm | cut -c9` != "-" ]
+		then
+			#echo "Other Write permission set on directory $1"
+			((check++))
+                fi
+		
+		#Check if PATH entry is owned by root
+                dirown=`ls -ldH $1 | awk '{print $3}'`
+                if [ "$dirown" != "root" ]
+                then
+                       #echo $1 is not owned by root
+			((check++))
+                fi
+        else
+		#echo $1 is not a directory
+		((check++))
+        fi
+	shift
+done
+
+#echo ${check}
+if [ ${check} == 0 ]
+then
+	echo "Result: PASSED! (Path is set correctly)"
+	((count++))
+elif [ ${check} != 0 ]
+then
+	echo "Result: FAILED! (Path is not set correctly)"
+	((count++))
+else
+	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+	((count++))
+fi
+####################################### 7.12 ######################################
+echo "========================================================================"
+echo -e "\t7.$count Check Permissions on User Home Directories"
+echo "------------------------------------------------------------------------"
+x=0
+while [ $x = 0 ]
+do
+                intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+                if [ -z "$intUserAcc" ]
+                then
+                        echo "There is no interactive user account."
+                        echo ' '
+                else
+                        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+                                chmod g-x $line
+                                chmod o-rwx $line
+                                echo "Directory $line permission is set default."
+                        done
+                fi
+		 x=1
+                
+done
+((count++))
+####################################### 7.13 #######################################
+echo "========================================================================"
+echo -e "\t7.$count Check Permissions on User Home Directories"
+echo "------------------------------------------------------------------------"
+x=0
+while [ $x = 0 ]
+do
+
+                intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+                if [ -z "$intUserAcc" ]
+                then
+                        echo "There is no interactive user account."
+                        echo ' '
+                else
+                        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+                                hiddenfiles="$(echo .*)"
+
+                                if [ -z "$hiddenfiles" ]
+                                then
+                                        echo "There is no hidden files."
+                                else
+					for file in ${hiddenfiles[*]}
+                                        do
+                                                chmod g-w $file
+                                                chmod o-w $file
+                                                echo "User directory $line hidden file $file permission is set as default"
+                                        done
+                                fi
+                        done
+                fi
+                x=1
+done
+((count++))
+####################################### 7.14 #######################################
+echo "========================================================================"
+echo -e "\t7.$count Check Permissions on User Home Directories"
+echo "------------------------------------------------------------------------"
+x=0
+while [ $x = 0 ]
+do
+
+                intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+                if [ -z "$intUserAcc" ]
+                then
+                        echo "There is no interactive user account."
+                        echo ' '
+                else
+                        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+				  permission="$(ls -al $line | grep .netrc)"
+                                if [ -z "$permission" ]
+                                then
+                                        echo "There is no .netrc file in user directory $line"
+                                        echo ' '
+                                else
+                                        ls -al $line | grep .netrc | while read -r netrc; do
+                                                for file in $netrc
+                                                do
+
+ cd $line
+
+ if [[ $file = *".netrc"* ]]
+
+ then
+
+         chmod go-rwx $file
+
+         echo "User directory $line .netrc file $file permission is set as default"
+
+ fi
+                                                done
+                                        done
+                                fi
+                        done
+                fi
+                x=1
+                
+done
+
+((count++))
+####################################### 7.15 #######################################
+echo "========================================================================"
+echo -e "\t7.$count Check Permissions on User Home Directories"
+echo "------------------------------------------------------------------------"
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+if [ -z "$intUserAcc" ]
+then
+        #echo "There is no interactive user account."
+        echo ''
+else
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+                #echo "Checking user home directory $line"
+		rhostsfile="$(ls -al $line | grep .rhosts)"
+                if  [ -z "$rhostsfile" ]
+                then
+                        #echo " There is no .rhosts file"
+                        echo ''
+                else
+                        ls -al $line | grep .rhosts | while read -r rhosts; do
+                                for file in $rhosts
+                                do
+                                        if [[ $file = *".rhosts"* ]]
+                                        then
+                                                #echo " Checking .rhosts file $file"
+                                                #check if file created user matches directory user
+                                                filecreateduser=$(stat -c %U $line/$file)
+                                                if [[ $filecreateduser = *"$line"* ]]
+                                                then
+#echo -e "${GREEN} $file created user is the same user in the directory${NC}"
+
+ echo ''
+                                                else
+
+ #echo -e "${RED} $file created user is not the same in the directory. This file should be deleted! ${NC}"
+
+ echo ''
+                                                        cd $line
+
+ rm $file
+                                                fi
+                                        fi
+                                done
+                        done
+                fi
+        done
+fi
+((count++))
+
+####################################### 7.16 ######################################
+echo "========================================================================"
+echo -e "\t7.$count Check Groups in /etc/passwd"
+echo "------------------------------------------------------------------------"
+x=0
+while [ $x = 0 ]
+do
+                
+		for i in $(cut -s -d: -f4 /etc/passwd | sort -u); do
+        		grep -q -P "^.*?:x:$i:" /etc/group
+        		if [ $? -ne 0 ]
+        		then
+					echo -e "${RED}Group $i is referenced by /etc/passwd but does not exist in /etc/group${NC}"
+					groupadd -g $i group$i
+				fi
+		done
+		echo -e "${RED}Remediation Finished${NC}"
+	x=1
+done
+((count++))
+####################################### 7.17 ######################################
+echo "========================================================================"
+echo -e "\t7.$count Check That Users Are Assigned Valid Home \n\tDirectories and Home Directory Ownership is Correct"
+echo "------------------------------------------------------------------------"
+
+x=0
+while [ $x = 0 ]
+do
+                echo "You choose to assign a home directory for all users without an assigned home directory."
+                cat /etc/passwd | awk -F: '{ print $1,$3,$6 }' | while read user uid dir; do
+                       if [ "$uid" -ge "500" -a ! -d "$dir" -a "$user" != "nfsnobody" ]
+                        then
+							mkhomedir_helper $user
+                        fi
+                done
+        x=1
+done
+
+echo "Remediation for 7.17 For users without ownership for its home directory"
+x=0
+while [ $x = 0 ]
+do
+		cat /etc/passwd | awk -F: '{ print $1,$3,$6 }' | while read user uid dir; do
+                        if [ $uid -ge 500 -a -d"$dir" -a $user != "nfsnobody" ]
+                        then
+				sudo chown $user: $dir
+                        fi
+                done
+	x=1
+done
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Duplicate UIDs${normal}"
+echo "------------------------------------------------------------"
+#Get etc/passwd file
+cat /etc/passwd| cut -f3 -d":" | sort -n | uniq -c | while read x ; do
+[ -z "${x}" ] && break
+set - $x
+if [ $1 -gt 1 ]; then
+#Checks for duplicate UIDs
+	users=`/bin/gawk -F: '($3 == n) { print $1 }' n=$2 /etc/passwd| /usr/bin/xargs`
+	printf "\e[31mResult: Failed! (Duplicate UID: ($2))\e[0m\n"
+else
+	printf "\e[32mResult: Passed! (UID: ($2))\e[0m\n"
+fi
+done
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Duplicate GIDs${normal}"
+echo "------------------------------------------------------------"
+printf "Checking for duplicate GIDs\n"
+#Get etc/group file
+cat /etc/group | cut -f3 -d":" | sort -n | uniq -c | while read x ; do
+[ -z "${x}" ] && break
+set - $x
+if [ $1 -gt 1 ]; then
+#Checks for duplicate GIDs
+	grps=`/bin/gawk -F: '($3 == n) { print $1 }' n=$2 /etc/group | /usr/bin/xargs`
+	printf "\e[31mResult: Failed! (Duplicate GID: ($2))\e[0m\n"
+else
+	printf "\e[32mResult: Passed! (GID: ($2))\e[0m\n"
+fi
+done
+((count++))
+#######################################################################
+#7.20 - Check that reserved UIDs are assigned to only system accounts
+
+echo "============================================================"
+echo -e "\t${bold}7.$count Check that reserved UIDs are assigned to only system accounts${normal}"
+echo "------------------------------------------------------------"
+
+#All System Accounts
+checkUsers="root bin daemon adm lp sync shutdown halt mail news uucp operator games gopher ftp nobody nscd vcsa rpc nscd vcsa rpc mailnull smmsp pcap ntp dbus avahi sshd rpcuser nfsnobody haldaemon avahi-autoipd distcache apache oprofile webalizer dovecot squid named xfs gdm sabayon usbmuxd rtkit abrt saslauth pulse postfix tcpdump"
+#Checks that reserved UIDs are assigned to system accounts
+cat /etc/passwd | awk -F : '($3 < 500) {print $1, $3}' | while read user uid; do found=0
+for tUser in ${checkUsers}
+	do
+		if [ ${user} = ${tUser} ]; then
+		found=1
+		fi
+	done
+	if [ $found -eq 0 ]; then
+	echo "Result: Failed! (User $user has a reserved UID ($uid))"
+	fi
+done
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Duplicate User Names${normal}"
+echo "------------------------------------------------------------"
+#Get etc/passwd file
+cat /etc/passwd | cut -f1 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x ; do [ -z "${x}" ] && break
+set - $x
+#Checks for duplicate user names
+if [ $1 -gt 1 ]; then
+	uids=`/bin/gawk -F: '($1 == n) { print $3 }' n=$2 \/etc/passwd | xargs`
+	printf "\e[31mResult: Failed! (Duplicate User Name: $2)\e[0m\n"
+else
+	printf "\e[32mResult: Passed! ($2)\e[0m\n"
+fi
+done
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Duplicate Group Names${normal}"
+echo "------------------------------------------------------------"
+#Get etc/group file
+cat /etc/group | cut -f1 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x ; do [ -z "${x}" ] && break
+set - $x
+#Checks for duplicate group names
+if [ $1 -gt 1 ]; then
+	gids=`/bin/gawk -F: '($1 == n) { print $3 }' n=$2 /etc/group | xargs`
+	printf "\e[31mResult: Failed! (Duplicate Group Name: $2)\e[0m\n"
+else 
+	printf "\e[32mResult: Passed! ($2)\e[0m\n"
+fi
+	done
+((count++))
+#7.23 Check for presence of user .forward files
+echo ""
+echo "========================================================================"
+echo -e "\t7.$count Check for Presence of User .forward Files"
+echo "------------------------------------------------------------------------"
+echo "Checking for presence of user .forward files."
+
+for dir in `/bin/cat /etc/passwd | /bin/awk -F: '{ print $6 }'`; do
+if [ ! -h "$dir/.forward" -a -f "$dir/.forward" ]; then
+	chmod u=rw- $dir/.forward
+	chmod g=--- $dir/.forward
+	chmod o=--- $dir/.forward
+	echo "Remediation performed for presence of $dir/.forward file."
+	echo "$dir/.forward can only be read and written by the owner only now."
+fi
+
+done
+	echo "Remediation done"
+count=1
+###############################################################################################################
+echo "========================================================================"
+echo -e "\t8.$count Set Warning Banner for Standard Login Services"
+echo "------------------------------------------------------------------------"
+setwarningbanner=`echo "WARNING: UNAUTHORIZED USERS WILL BE PROSECUTED!" > '/etc/motd'`
+if $setwarningbanner; then 
+	echo "Remediation for 8.$count: Success!"
+	((count++))
+else 
+	echo "Remediation for 8.$count: Failed! (Unable to write to file '/etc/motd')"
+	((count++))
+fi
+###############################################################################################################
+printf "\n"
+echo "========================================================================"
+echo -e "\t8.$count Remove OS Information from Login Warning Banners"
+echo "------------------------------------------------------------------------"
+current1=$(egrep '(\\v|\\r|\\m|\\s)' /etc/issue)
+current2=$(egrep '(\\v|\\r|\\m|\\s)' /etc/motd)
+current3=$(egrep  '(\\v|\\r|\\m|\\s)' /etc/issue.net)
+
+string1="\\v"
+string2="\\r"
+string3="\\m"
+string4="\\s"
+
+if [[ $current1 =~ $string1 || $current1 =~ $string2 || $current1 =~ $string3 || $current1 =~ $string4 ]]; then
+		 sed -i.bak '/\\v\|\\r\|\\m\|\\s/d' /etc/issue
+fi
+		echo "(1/3) Remediation for 8.$count: PASSED (Remediated /etc/issue file)"
+
+if [[ $current2 =~ $string1 || $current2 =~ $string2 || $current2 =~ $string3 || $current2 =~ $string4 ]]; then
+		 sed -i.bak '/\\v\|\\r\|\\m\|\\s/d' /etc/motd
+fi
+		 echo "(2/3) Remediation for 8.$count: PASSED (Remediated /etc/motd file)"
 
 
+if [[ $current3 =~ $string1 || $current3 =~ $string2 || $current3 =~ $string3 || $current4 =~ $string4 ]]; then
+        sed -i.bak '/\\v\|\\r\|\\m\|\\s/d' /etc/issue.net
+fi
+		echo "(3/3) Remediation for 8.$count: PASSED (Remediated /etc/issue.net file)"
+count=1
+#Check whether Anacron Daemon is installed or not and install if it is found to be uninstalled
+printf "\n"
+echo "========================================================================"
+echo -e "\t9.$count Enable Anacron Daemon"
+echo "------------------------------------------------------------------------"
+checkanacron=`rpm -q cronie-anacron`
+if [ -n "$checkanacron" ] 
+then 
+    	echo "Remediation for 9.$count: Success!"
+else
+		echo "Anacron Daemon is not installed! Installing now ..."
+    	sudo yum install cronie-anacron -y
+		echo "Anacron Daemon is installed!"
+		echo "Remediation for 9.$count: Success!"
+fi
 
+if [ -n "$checkanacron" ]  #double checking 
+then
+	:
+else
+	echo "Remediation for 9.$count: Failed! (Please ensure that yum is available for installation)"
+fi
+((count++))
+printf "\n"
+echo "========================================================================"
+echo -e "\t9.$count Enable crond Daemon"
+echo "------------------------------------------------------------------------"
+#Check if Crond Daemon is enabled and enable it if it is not enabled
+checkCrondDaemon=$(systemctl is-enabled crond)
+if [ "$checkCrondDaemon" = "enabled" ]
+then
+    	echo "Remediation for 9.$count: Success!"
+else
+    	systemctl enable crond
+	doubleCheckCrondDaemon=$(systemctl is-enabled crond)
+	if [ "$doubleCheckCrondDaemon" = "enabled" ]
+	then
+		:
+	else
+		echo "Remediation for 9.$count: Failed! (Please ensure that yum is available for installation)"
+	fi
+fi
+((count++))
+printf "\n"
+echo "========================================================================"
+echo -e "\t9.$count Set User/Group Owner and Permission on /etc/anacrontab"
+echo "------------------------------------------------------------------------"
+#Check if the correct permissions is configured for /etc/anacrontab and configure them if they are not
+anacrontabFile="/etc/anacrontab"
+anacrontabPerm=$(stat -c "%a" "$anacrontabFile")
+anacrontabRegex="^[0-7]00$"
+if [[ $anacrontabPerm =~ $anacrontabRegex ]]
+then
+	echo "(1/3) Remediation for 9.$count - Permissions: Success!"
+else
+	sudo chmod og-rwx $anacrontabFile
+	anacrontabPermCheck=$(stat -c "%a" "$anacrontabFile")
+        anacrontabRegexCheck="^[0-7]00$"
+	if [[ $anacrontabPermCheck =~ $anacrontabRegexCheck ]]
+	then
+		:
+	else
+		echo "(1/3) Remediation for 9.$count - Permissions: Failed! (Permissions for $anacrontabFile cannot be configured as required)"
+	fi
+fi
 
+anacrontabOwn=$(stat -c "%U" "$anacrontabFile")
+if [ $anacrontabOwn = "root" ]
+then
+	echo "(2/3) Remediation for 9.$count - Owner: Success!"
+else
+	sudo chown root:root $anacrontabFile
+	anacrontabOwnCheck=$(stat -c "%U" "$anacrontabFile")
+       	if [ $anacrontabOwnCheck = "root" ]
+       	then
+                :
+	else
+		echo "(2/3) Remediation for 9.$count - Owner: Failed! (The owner of the file $anacrontabFile cannot be set as root)"
+        fi
+fi
 
+anacrontabGrp=$(stat -c "%G" "$anacrontabFile")
+if [ $anacrontabGrp = "root" ]
+then
+	echo "(3/3) Remediation for 9.$count - Group Owner: Success!"
+else
+	sudo chown root:root $anacrontabFile
+	anacrontabGrpCheck=$(stat -c "%G" "$anacrontabFile")
+        if [ $anacrontabGrpCheck = "root" ]
+	then
+		: 
+	else
+		echo "(3/3) Remediation for 9.$count - Group Owner: Failed! (The group owner of the $anacrontabFile file cannot be set as root)"
+        fi
+fi
+((count++))
+printf "\n"
+echo "========================================================================"
+echo -e "\t9.$count Set User/Group Owner and Permission on /etc/crontab"
+echo "------------------------------------------------------------------------"
+#Check if the correct permissions has been configured for /etc/crontab and configure them if they are not
+crontabFile="/etc/crontab"
+crontabPerm=$(stat -c "%a" "$crontabFile")
+crontabRegex="^[0-7]00$"
+if [[ $crontabPerm =~ $crontabRegex ]]
+then
+	echo "(1/3) Remediation for 9.$count - Permissions: Success!"
+else
+	sudo chmod og-rwx $crontabFile
+	checkCrontabPerm=$(stat -c "%a" "$crontabFile")
+	checkCrontabRegex="^[0-7]00$"
+	if [[ $checkCrontabPerm =~ $checkCrontabRegex ]]
+	then
+		:
+	else
+		echo "(1/3) Remediation for 9.$count - Permissions: Failed! (Permisions of the file $crontabFile cannot be set as recommended)"
+	fi
+fi
 
+crontabOwn=$(stat -c "%U" "$crontabFile")
+if [ $crontabOwn = "root" ]
+then
+	echo "(2/3) Remediation for 9.$count - Owner : Success!"
+else
+	sudo chown root:root $crontabFile
+	checkCrontabOwn=$(stat -c "%U" "$crontabFile")
+	if [ $checkCrontabOwn = "root" ]
+	then
+        	:
+	else
+		echo "(2/3) Remediation for 9.$count - Owner: Failed! (The owner of the file $crontabFile cannot be set as root)"
+	fi
 
+fi
 
+crontabGrp=$(stat -c "%G" "$crontabFile")
+if [ $crontabGrp = "root" ]
+then
+	echo "(3/3) Remediation for 9.$count - Group Owner: Success!"
+else
+	sudo chown root:root $crontabFile
+	checkCrontabGrp=$(stat -c "%G" "$crontabFile")
+	if [ $checkCrontabGrp = "root" ]
+	then
+        	:
+	else
+		echo "(3/3) Remediation for 9.$count - Group Owner: Failed! (The group owner of the $crontabFile file cannot be set as root)"
+	fi
+fi
+((count++))
+printf "\n"
+echo "========================================================================"
+echo -e "\t9.$count Set User/Group Owner and Permission on /etc/cron.\n\t[hourly,daily,weekly,monthly]"
+echo "------------------------------------------------------------------------"
+#Check if the correct permissions has been set for /etc/cron.XXXX and change them if they are not
+patchCronHDWMPerm(){
+        local cronHDWMType=$1
+        local cronHDWMFile="/etc/cron.$cronHDWMType"
 
+	local cronHDWMPerm=$(stat -c "%a" "$cronHDWMFile")
+	local cronHDWMRegex="^[0-7]00$"
+	if [[ $cronHDWMPerm =~ $cronHDWMRegex ]]
+	then
+		echo "(1/3) Remediation for 9.$count - Permissions: Success!"
+	else
+		sudo chmod og-rwx $cronHDWMFile
+		local checkCronHDWMPerm=$(stat -c "%a" "$cronHDWMFile")
+	        local checkCronHDWMRegex="^[0-7]00$"
+		if [[ $checkCronHDWMPerm =~ $checkCronHDWMRegex ]]
+       		then
+                	:
+       		else
+			echo "(1/3) Remediation for 9.$count - Permissions: Failed! (Permissions for the $cronHDWMFile file cannot be set as recommended)"
+		fi
+	fi
 
+	local cronHDWMOwn="$(stat -c "%U" "$cronHDWMFile")"
+	if [ $cronHDWMOwn = "root" ]
+        then
+		echo "(2/3) Remediation for 9.$count - Owner : Success!"
+	else
+		sudo chown root:root $cronHDWMFile
+		local checkCronHDWMOwn="$(stat -c "%U" "$cronHDWMFile")"
+	        if [ $checkCronHDWMOwn = "root" ]
+	        then
+        	        :
+	        else
+			echo "(2/3) Remediation for 9.$count - Owner: Failed! (The owner of the file $cronHDWMFile cannot be set as root)"
+		fi
 
+	fi
 
+	local cronHDWMGrp="$(stat -c "%G" "$cronHDWMFile")"
+        if [ $cronHDWMGrp = "root" ]
+        then
+		echo "(3/3) Remediation for 9.$count - Group Owner: Success!"
+	else
+		sudo chown root:root $cronHDWMFile
+		local checkCronHDWMGrp="$(stat -c "%G" "$cronHDWMFile")"
+	        if [ $checkCronHDWMGrp = "root" ]
+	        then
+        	        :
+       		else
+			echo "(3/3) Remediation for 9.$count - Group Owner: Failed! (The group owner of the $cronHDWMFile file cannot be set as root)"
+		fi
+	fi
+}
+echo "------------------------------------------------------------------------"
+echo -e "\t[Hourly]"
+echo "------------------------------------------------------------------------"
+patchCronHDWMPerm "hourly"
+echo "------------------------------------------------------------------------"
+echo -e "\t[Daily]"
+echo "------------------------------------------------------------------------"
+patchCronHDWMPerm "daily"
+echo "------------------------------------------------------------------------"
+echo -e "\t[Weekly]"
+echo "------------------------------------------------------------------------"
+patchCronHDWMPerm "weekly"
+echo "------------------------------------------------------------------------"
+echo -e "\t[Monthly]"
+echo "------------------------------------------------------------------------"
+patchCronHDWMPerm "monthly"
+((count++))
+printf "\n"
+#Check if the permissions has been set correctly for /etc/cron.d
+echo "========================================================================"
+echo -e "\t9.$count Set User/Group Owner and Permission on /etc/cron.d"
+echo "------------------------------------------------------------------------"
+#Check if the permissions has been set correctly for /etc/cron.d and set them right if they are not
+cronDFile="/etc/cron.d"
+cronDPerm=$(stat -c "%a" "$cronDFile")
+cronDRegex="^[0-7]00$"
+if [[ $cronDPerm =~ $cronDRegex ]]
+then
+	echo "(1/3) Remediation for 9.$count - Permissions: Success!"
+else
+	sudo chmod og-rwx $cronDFile
+	checkCronDPerm=$(stat -c "%a" "$cronDFile")
+	checkCronDRegex="^[0-7]00$"
+	if [[ $checkCronDPerm =~ $checkCronDRegex ]]
+	then
+		:
+	else
+		echo "(1/3) Remediation for 9.$count - Permissions: Failed! (Permisions of the file $cronDFile cannot be set as recommended)"
+	fi
 
+fi
+
+cronDOwn=$(stat -c "%U" "$cronDFile")
+if [ $cronDOwn = "root" ]
+then
+	echo "(2/3) Remediation for 9.$count - Owner : Success!"
+else
+        sudo chown root:root $cronDFile
+	checkCronDOwn=$(stat -c "%U" "$cronDFile")
+	if [ $checkCronDOwn = "root" ]
+	then
+        	:
+	else
+		echo "(2/3) Remediation for 9.$count - Owner: Failed! (The owner of the file $cronDFile cannot be set as root)"
+	fi
+fi
+
+cronDGrp=$(stat -c "%G" "$cronDFile")
+if [ $cronDGrp = "root" ]
+then
+	echo "(3/3) Remediation for 9.$count - Group Owner: Success!"
+else
+	sudo chown root:root $cronDFile
+	checkCronDGrp=$(stat -c "%G" "$cronDFile")
+	if [ $checkCronDGrp = "root" ]
+	then
+        	:
+	else
+		echo "(3/3) Remediation for 9.$count - Group Owner: Failed! (The group owner of the $cronDFile file cannot be set as root)"
+	fi
+fi
+((count++))
+printf "\n"
+echo "========================================================================"
+echo -e "\t9.$count Restrict at Daemon"
+echo "------------------------------------------------------------------------"
+#Check if /etc/at.deny is deleted and that a /etc/at.allow exists and check the permissions of the /e$
+atDenyFile="/etc/at.deny"
+if [ -e "$atDenyFile" ]
+then	
+		echo "$atDenyFile exist, deleting now ..."
+    	rmdeny=`sudo rm $atDenyFile`
+		if "$rmdeny"; then
+			echo "(1/4) Remediation for 9.$count: Success! - $atDenyFile is deleted"
+		else 
+			echo "(1/4) Remediation for 9.$count: Failed! - $atDenyFile cannot be deleted"
+		fi
+else
+    	echo "(1/4) Remediation for 9.$count: Success! - $atDenyFile is deleted or does not exist."
+fi
+
+atAllowFile="/etc/at.allow"
+if [ -e "$atAllowFile" ]
+then
+    	atAllowPerm=$(stat -c "%a" "$atAllowFile")
+        atAllowRegex="^[0-7]00$"
+        if [[ $atAllowPerm =~ $atAllowRegex ]]
+        then
+            	echo "(2/4) Remediation for 9.$count - Permissions: Success!"
+        else
+            	sudo chmod og-rwx $atAllowFile
+		checkAtAllowPerm=$(stat -c "%a" "$atAllowFile")
+	        checkAtAllowRegex="^[0-7]00$"
+	        if [[ $checkAtAllowPerm =~ $checkAtAllowRegex ]]	
+	        then
+        	        :
+        	else
+			echo "(2/4) Remediation for 9.$count - Permissions: Failed! (Permisions of the file $atAllowFile cannot be set as recommended)"
+		fi
+        fi
+
+	atAllowOwn=$(stat -c "%U" "$atAllowFile")
+        if [ $atAllowOwn = "root" ]
+        then
+            	echo "(3/4) Remediation for 9.$count - Owner : Success!"
+        else
+            	sudo chown root:root $atAllowFile
+		checkAtAllowOwn=$(stat -c "%U" "$atAllowFile")
+	       	if [ $checkAtAllowOwn = "root" ]
+	       	then
+			:
+		else
+			echo "(3/4) Remediation for 9.$count - Owner: Failed! (The owner of the file $overallCounter cannot be set as root)"
+		fi
+        fi
+
+	atAllowGrp=$(stat -c "%G" "$atAllowFile")
+        if [ $atAllowGrp = "root" ]
+        then
+            	echo "(4/4) Remediation for 9.$count - Group Owner: Success!"
+        else
+            	sudo chown root:root $atAllowFile
+		checkAtAllowGrp=$(stat -c "%G" "$atAllowFile")
+	        if [ $checkAtAllowGrp = "root" ]
+	        then
+	                :
+        	else
+			echo "(4/4) Remediation for 9.$count - Group Owner: Failed! (The group owner of the $atAllowFile file cannot be set as root)"
+		fi
+        fi
+else
+    	touch $atAllowFile
+	sudo chmod og-rwx $atAllowFile
+        checkAtAllowPerm2=$(stat -c "%a" "$atAllowFile")
+        checkAtAllowRegex2="^[0-7]00$"
+        if [[ $checkAtAllowPerm2 =~ $checkAtAllowRegex2 ]]
+        then
+		:
+	else
+		echo "(2/4) Remediation for 9.$count - Permissions: Failed! (Permisions of the file $atAllowFile cannot be set as recommended)"
+	fi
+	
+	sudo chown root:root $atAllowFile
+        checkAtAllowOwn2=$(stat -c "%U" "$atAllowFile")
+        if [ $checkAtAllowOwn2 = "root" ]
+        then
+               	:
+       	else
+                echo "(3/4) Remediation for 9.$count - Owner: Failed! (The owner of the file $overallCounter cannot be set as root)"
+       	fi	
+
+	sudo chown root:root $atAllowFile
+        checkAtAllowGrp2=$(stat -c "%G" "$atAllowFile")
+        if [ $checkAtAllowGrp2 = "root" ]
+        then
+		:
+	else
+		echo "(4/4) Remediation for 9.$count - Group Owner: Failed! (The group owner of the $atAllowFile file cannot be set as root)"
+	fi
+fi
+((count++))
+echo "========================================================================"
+echo -e "\t9.$count Restrict at/cron to Authorized User"
+echo "------------------------------------------------------------------------"
+#Check if /etc/cron.deny is deleted and that a /etc/cron.allow exists and check the permissions, configure as recommended if found to have not been configured correctly
+cronDenyFile="/etc/cron.deny"
+if [ -e "$cronDenyFile" ]
+then
+		echo "$cronDenyFile exist, deleting now ..."
+    	rmdenycron=`sudo rm $cronDenyFile`
+		if "$rmdenycron"; then
+			echo "(1/4) Remediation for 9.$count: Success! - $atDenyFile is deleted"
+		else 
+			echo "(1/4) Remediation for 9.$count: Failed! - $atDenyFile cannot be deleted"
+		fi
+else
+    	echo "(1/4) Remediation for 9.$count: Success! - $atDenyFile is deleted or does not exist"
+fi
+
+cronAllowFile="/etc/cron.allow"
+if [ -e "$cronAllowFile" ]
+then
+        cronAllowPerm=$(stat -c "%a" "$cronAllowFile")
+        cronAllowRegex="^[0-7]00$"
+       	if [[ $cronAllowPerm =~ $cronAllowRegex ]]
+    	then
+                echo "(2/4) Remediation for 9.$count - Permissions: Success!"
+        else
+            	sudo chmod og-rwx $cronAllowFile
+               	checkCronAllowPerm=$(stat -c "%a" "$atAllowFile")
+            	checkCronAllowRegex="^[0-7]00$"
+               	if [[ $checkCronAllowPerm =~ $checkCronAllowRegex ]]
+               	then
+                       	:
+               	else
+                        echo "(2/4) Remediation for 9.$count - Permissions: Failed! (Permisions of the file $cronAllowFile cannot be set as recommended)"
+                fi
+       	fi
+
+	cronAllowOwn=$(stat -c "%U" "$cronAllowFile")
+        if [ $cronAllowOwn = "root" ]
+        then
+            	echo "(3/4) Remediation for 9.$count - Owner : Success!"
+        else
+            	sudo chown root:root $cronAllowFile
+                checkCronAllowOwn=$(stat -c "%U" "$cronAllowFile")
+                if [ $checkCronAllowOwn = "root" ]
+                then
+                    	:
+                else
+                        echo "(3/4) Remediation for 9.$count - Owner: Failed! (The owner of the file $cronAllowFile cannot be set as root)"
+                fi
+        fi
+
+	cronAllowGrp=$(stat -c "%G" "$cronAllowFile")
+        if [ $cronAllowGrp = "root" ]
+        then
+            	echo "(4/4) Remediation for 9.$count - Group Owner: Success!"
+        else
+            	sudo chown root:root $cronAllowFile
+                checkCronAllowGrp=$(stat -c "%G" "$cronAllowFile")
+                if [ $checkCronAllowGrp = "root" ]
+                then
+                    	:
+                else
+                        echo "(4/4) Remediation for 9.$count - Group Owner: Failed! (The group owner of the $cronAllowFile file cannot be set as root)"
+                fi
+        fi
+else
+	touch $cronAllowFile
+        sudo chmod og-rwx $cronAllowFile
+        checkCronAllowPerm2=$(stat -c "%a" "$cronAllowFile")
+        checkCronAllowRegex2="^[0-7]00$"
+        if [[ $checkCronAllowPerm2 =~ $checkCronAllowRegex2 ]]
+        then
+            	:
+        else
+                echo "(2/4) Remediation for 9.$count - Permissions: Failed! (Permisions of the file $cronAllowFile cannot be set as recommended)"
+        fi
+
+        sudo chown root:root $cronAllowFile
+        checkCronAllowOwn2=$(stat -c "%U" "$cronAllowFile")
+        if [ $checkCronAllowOwn2 = "root" ]
+        then
+            	:
+        else
+                echo "(3/4) Remediation for 9.$count - Owner: Failed! (The owner of the file $cronAllowFile cannot be set as root)"
+        fi
+
+	sudo chown root:root $cronAllowFile
+	checkCronAllowGrp2=$(stat -c "%G" "$cronAllowFile")
+        if [ $checkCronAllowGrp2 = "root" ]
+        then
+            	:
+        else
+		echo "(4/4) Remediation for 9.$count - Group Owner: Failed! (The group owner of the $cronAllowFile file cannot be set as root)"
+	fi
+fi
 
 printf "\n\n"
 #To capture escaped strings and close the terminal
