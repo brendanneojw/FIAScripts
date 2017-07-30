@@ -253,6 +253,226 @@ else
 fi
 
 printf "\n\n"
+# 3.3
+echo -e "\e[4m3.3 : Disable AvahiServer\e[0m\n"
+checkavahi=`systemctl status avahi-daemon | grep inactive`
+checkavahi1=`systemctl status avahi-daemon | grep disabled`
+if [ -n "$checkavahi" -a -n "$checkavahi1" ]
+then 
+	echo "Avahi-daemon - PASSED (Avahi-daemon is inactive and disabled) "
+		
+elif [ -n "$checkavahi" -a -z "$checkavahi1" ]
+then 
+	echo "Avahi-daemon - FAILED (Avahi-daemon is inactive but not disabled)"
+
+elif [ -z "$checkavahi" -a -n "$checkavahi1" ]
+then 
+	echo "Avahi-daemon - FAILED (Avahi-daemon is disabled but active)"
+	
+else 
+	echo "Avahi-daemon - FAILED (Avahi-daemon is active and enabled)"
+
+fi
+
+printf "\n\n"
+
+# 3.4
+echo -e "\e[4m3.4 : Disable Print Server - cups\e[0m\n"
+checkcupsinstalled=`yum list cups | grep "Available Packages"`
+checkcups=`systemctl status cups | grep inactive`
+checkcups1=`systemctl status cups | grep disabled`
+
+if [ -n "$checkcupsinstalled" ]
+then
+	echo "Cups - PASSED (Cups is not installed) "
+else
+	if [ -n "$checkcups" -a -n "$checkcups1" ]
+	then 
+		echo "Cups - PASSED (Cups is inactive and disabled) "
+	elif [ -n "$checkcups" -a -z "$checkcups1" ]
+	then 
+		echo "Cups - FAILED (Cups is inactive but not disabled)"
+
+	elif [ -z "$checkcups" -a -n "$checkcups1" ]
+	then 
+		echo "Cups - FAILED (Cups is disabled but active)"
+
+	else 
+		echo "Cups - FAILED (Cups is active and enabled)"
+	
+	fi
+fi
+
+printf "\n\n"
+
+# 3.5
+echo -e "\e[4m3.5 : Remove DHCP Server\e[0m\n"
+checkyumdhcp=`yum list dhcp | grep "Available Packages" `
+checkyumdhcpactive=`systemctl status dhcp | grep inactive `
+checkyumdhcpenable=`systemctl status dhcp | grep disabled `
+if [ -n "$checkyumdhcp" ]
+then 
+	echo "DHCP Server - PASSED (DHCP is not installed) "
+
+else 
+	if [ -z "$checkyumdhcpactive" -a -z "$checkyumdhcpenable" ]
+	then 
+		echo "DHCP - FAILED (DHCP is active and enabled)"
+
+	elif [ -z "$checkyumdhcpactive" -a -n "$checkyumdhcpenable" ]
+	then 
+		echo "DHCP - FAILED (DHCP is active but disabled)"
+
+	elif [ -n "$checkyumdhcpactive" -a -z "$checkyumdhcpenable" ]
+	then
+		echo "DHCP - FAILED (DHCP is inactive but enabled)"
+
+	else 
+		echo "DHCP - PASSED (DHCP is inactive and disabled)"
+
+	fi
+fi
+
+printf "\n\n"
+
+# 3.6
+echo -e "\e[4m3.6 : Configure Network Time Protocol (NTP)\e[0m\n"
+checkntp1=`grep "^restrict default kod nomodify notrap nopeer noquery" /etc/ntp.conf`
+checkntp2=`grep "^restrict -6 default kod nomodify notrap nopeer noquery" /etc/ntp.conf` 
+checkntp3=`grep "^server" /etc/ntp.conf | grep server`
+checkntp4=`grep 'OPTIONS="-u ntp:ntp -p /var/run/ntpd.pid"' /etc/sysconfig/ntpd `
+
+if [ -n "$checkntp1" ]
+then 
+	if [ -n "$checkntp2" ]
+	then 
+		if [ -n "$checkntp3" ]
+			then 
+				if [ -n "$checkntp4" ]
+				then
+					echo "NTP - PASSED (NTP has been properly configured)"
+					
+				else 
+					echo "NTP - FAILED (Option has not been configured in /etc/sysconfig/ntpd)" 
+					
+				fi
+		else
+			echo "NTP - FAILED (Failed to list down NTP servers)"
+			
+		fi
+	else 
+		echo "NTP - FAILED (Failed to implement restrict -6 default kod nomodify notrap nopeer noquery)"
+		
+	fi
+else 
+	echo "NTP - FAILED (Failed to implement restrict default kod nomodify notrap nopeer noquery)"
+
+fi
+
+printf "\n\n"
+
+# 3.7
+echo -e "\e[4m3.7 : Remove LDAP\e[0m\n"
+checkldapclients=`yum list openldap-clients | grep 'Available Packages'`
+checkldapservers=`yum list openldap-servers | grep 'Available Packages'`
+
+if [ -n "checkldapclients" -a -n "checkldapservers" ]
+then 
+	echo "LDAP - PASSED (LDAP server and client are both not installed)"
+	
+elif [ -n "checkldapclients" -a -z "checkldapservers" ]
+then
+	echo "LDAP - FAILED (LDAP server is installed)"
+	
+elif [ -z "checkldapclients" -a -n "checkldapservers" ]
+then
+	echo "LDAP - FAILED (LDAP client is installed)"
+	
+else 
+	echo "LDAP - FAILED (Both LDAP client and server are installed)"
+	
+fi
+
+printf "\n\n"
+
+# 3.8
+echo -e "\e[4m3.8 : Disable NFS and RPC\e[0m\n"
+nfsservices=( "nfs-lock" "nfs-secure" "rpcbind" "nfs-idmap" "nfs-secure-server" )
+
+for eachnfsservice in ${nfsservices[*]}
+do 
+	checknfsservices=`systemctl is-enabled $eachnfsservice | grep enabled`
+	if [ -z "$checknfsservices" ]
+	then 
+		echo "$eachnfsservice - PASSED ($eachnfsservice is disabled) "
+
+	else 
+		echo "$eachnfsservice - FAILED ($eachnfsservice is enabled)"
+
+	fi
+done 	
+
+printf "\n\n"
+
+# 3.9
+echo -e "\e[4m3.9 : Remove DNS, FTP, HTTP, HTTP-Proxy, SNMP\e[0m\n"
+standardservices=( "named" "vsftpd" "httpd" "sshd" "snmpd") 
+
+for eachstandardservice in ${standardservices[*]}
+do 
+	checkserviceexist=`systemctl status $eachstandardservice | grep not-found`
+	if [ -n "$checkserviceexist" ]
+	then
+		echo "$eachstandardservice - PASSED ($eachstandardservice does not exist in the system)"
+
+	else
+		checkstandardservices=`systemctl status $eachstandardservice | grep disabled`
+		checkstandardservices1=`systemctl status $eachstandardservice | grep inactive`
+		if [ -z "$checkstandardservices" -a -z "$checkstandardservices1" ]
+		then 
+			echo "$eachstandardservice - FAILED ($eachstandardservice is active and enabled) "
+			
+		elif [ -z "$checkstandardservices" -a -n "$checkstandardservices1" ]
+		then 
+			echo "$eachstandardservice - FAILED ($eachstandardservice is inactive but enabled) "
+	
+		elif [ -n "$checkstandardservices" -a -z "$checkstandardservices1" ]
+		then 
+			echo "$eachstandardservice - FAILED ($eachstandardservice is disabled but active) "
+
+		else 
+			echo "$eachstandardservice - PASSED ($eachstandardservice is disabled and inactive)"
+		
+		fi
+	fi
+done 	
+
+printf "\n\n"
+
+# 3.10
+echo -e "\e[4m3.10 : Configure Mail Transfer Agent for Local-Only Mode\e[0m\n"
+checkmailtransferagent=`netstat -an | grep ":25[[:space:]]"`
+
+if [ -n "$checkmailtransferagent" ]
+then
+	checklistening=`netstat -an | grep LISTEN`
+	if [ -n "$checklistening" ]
+	then
+		checklocaladdress=`netstat -an | grep [[:space:]]127.0.0.1:25[[:space:]] | grep LISTEN`
+		if [ -n "$checklocaladdress" ]
+		then
+			echo "MTA - PASSED (Mail Transfer Agent is listening on the loopback address)"
+		else
+			echo "MTA - FAILED (Mail Transfer Agent is not listening on the loopback address)"
+		fi
+	else
+		echo "MTA - FAILED (Mail Transfer Agent is not in listening mode)"
+	fi
+else
+	echo "MTA - FAILED (Mail Transfer Agent is not configured/installed)"
+fi
+
+printf "\n\n"
 
 read -n 1 -s -r -p "Press any key to exit!"
 kill -9 $PPID
