@@ -1100,8 +1100,6 @@ fi
 printf "\n\n"
 
 #6.2.1.10
-printf "\n"
-echo -e "\e[4m6.2.1.10 : Collect Login and Logout Events\e[0m\n"
 chklogins=`grep logins /etc/audit/audit.rules`
 loginfail=`grep "\-w /var/log/faillog -p wa -k logins" /etc/audit/audit.rules`
 loginlast=`grep "\-w /var/log/lastlog -p wa -k logins" /etc/audit/audit.rules`
@@ -1115,8 +1113,6 @@ else
 fi
 
 #6.2.1.11
-printf "\n"
-echo -e "\e[4m6.2.1.11 : Collect Session Initiation Information\e[0m\n"
 chksession=`egrep 'wtmp|btmp|utmp' /etc/audit/audit.rules`
 sessionwtmp=`egrep "\-w /var/log/wtmp -p wa -k session" /etc/audit/audit.rules`
 sessionbtmp=`egrep "\-w /var/log/btmp -p wa -k session" /etc/audit/audit.rules`
@@ -1130,8 +1126,6 @@ else
 fi
 
 #6.2.1.12
-printf "\n"
-echo -e "\e[4m6.2.1.12 : Collect Discretionary Access Control Permission Modification Events\e[0m\n"
 chkpermission64=`grep perm_mod /etc/audit/audit.rules`
 permission1=`grep "\-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod" /etc/audit/audit.rules`
 permission2=`grep "\-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F
@@ -1152,8 +1146,6 @@ else
 fi
 
 #6.2.1.13
-printf "\n"
-echo -e "\e[4m6.2.1.13 : Collect Unsuccessful Unauthorized Access Attempts to Files\e[0m\n"
 chkaccess=`grep access /etc/audit/audit.rules`
 access1=`grep "\-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 - k access" /etc/audit/audit.rules`
 access2=`grep "\-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 - k access" /etc/audit/audit.rules`
@@ -1171,8 +1163,6 @@ else
 fi
 
 #6.2.1.14 Collect Use of Privileged Commands
-printf "\n"
-echo -e "\e[4m6.2.1.14 : Collect Use of Privileged Commands\e[0m\n"
 find / -xdev \( -perm -4000 -o -perm -2000 \) -type f | awk '{print "-a always,exit-F path=" $1 " -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged" }' > /tmp/1.log
 
 checkpriviledge=`cat /tmp/1.log`
@@ -1182,58 +1172,50 @@ checkpriviledgenotinfile=`grep -F -x -v -f /tmp/2.log /tmp/1.log`
 
 if [ -n "$checkpriviledgenotinfile" ]
 then
-	echo "FAILED - Privileged Commands not in audit"
+	echo "FAIL - Privileged Commands not in audit"
 else
-	echo "PASSED - Privileged Commands in audit"
+	echo "PASS - Privileged Commands in audit"
 fi
 
 rm /tmp/1.log
 rm /tmp/2.log
 
 #6.2.1.15 Collect Successful File System Mounts
-printf "\n"
-echo -e "\e[4m6.2.1.15 : Collect Successful File System Mounts\e[0m\n"
 bit64mountb64=`grep "\-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" /etc/audit/audit.rules`
 bit64mountb32=`grep "\-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" /etc/audit/audit.rules`
 bit32mountb32=`grep "\-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" /etc/audit/audit.rules`
 
 if [ -z "$bit64mountb64" -o -z "$bit64mountb32" -o -z "$bit32mountb32" ]
 then
-	echo "FAILED - To determine filesystem mounts" 
+	echo "FAIL - To determine filesystem mounts" 
 else
-	echo "PASSED - To determine filesystem mounts"
+	echo "PASS - To determine filesystem mounts"
 fi
 
 #6.2.1.16 Collect File Delection Events by User
-printf "\n"
-echo -e "\e[4m6.2.1.16 : Collect File Delection Events by User\e[0m\n"
 bit64delb64=`grep "\-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" /etc/audit/audit.rules`
 bit64delb32=`grep "\-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" /etc/audit/audit.rules`
 bit32delb32=`grep "\-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" /etc/audit/audit.rules`
 
 if [ -z "$bit64delb64" -o -z "$bit64delb32" -o -z "$bit32delb32" ]
 then
-	echo "FAILED - To determine the file delection event by user"
+	echo "FAIL - To determine the file delection event by user"
 else
-	echo "PASSED - To determine the file delection event by user"
+	echo "PASS - To determine the file delection event by user"
 fi
 
 #6.2.1.17 Collect Changes to System Administration Scope
-printf "\n"
-echo -e "\e[4m6.2.1.17 : Collect Changes to System Administrator Scope\e[0m\n"
 chkscope=`grep scope /etc/audit/audit.rules`
 sudoers='-w /etc/sudoers -p wa -k scope'
 
 if [ -z "$chkscope" -o "$chkscope" != "$sudoers" ]
 then
-	echo "FAILED - To unauthorize change to scope of system administrator activity"
+	echo "FAIL - To unauthorize change to scope of system administrator activity"
 else
-	echo "PASSED - To unauthorize change to scope of system administrator activity"
+	echo "PASS - To unauthorize change to scope of system administrator activity"
 fi
 
-#6.2.1.18
-printf "\n"
-echo -e "\e[4m6.2.1.18 : Collect System Administrator Actions\e[0m\n"
+#6.2.1.18 
 chkadminrules=`grep actions /etc/audit/audit.rules`
 adminrules='-w /var/log/sudo.log -p wa -k actions'
 
@@ -1245,8 +1227,6 @@ else
 fi
 
 #6.2.1.19
-printf "\n"
-echo -e "\e[4m6.2.1.19 : Collect Kernel Module Loading and Unloading\e[0m\n"
 chkmod1=`grep "\-w /sbin/insmod -p x -k modules" /etc/audit/audit.rules`
 chkmod2=`grep "\-w /sbin/rmmod -p x -k modules" /etc/audit/audit.rules`
 chkmod3=`grep "\-w /sbin/modprobe -p x -k modules" /etc/audit/audit.rules`
@@ -1260,8 +1240,6 @@ else
 fi
 
 #6.2.1.20
-printf "\n"
-echo -e "\e[4m6.2.1.20 : Make the Audit Configuration Immutable\e[0m\n"
 chkimmute=`grep "^-e 2" /etc/audit/audit.rules`
 immute='-e 2'
 
@@ -1273,8 +1251,6 @@ else
 fi
 
 #6.2.1.21
-printf "\n"
-echo -e "\e[4m6.2.1.21 : Configure logrotate\e[0m\n"
 chkrotate1=`grep "/var/log/messages" /etc/logrotate.d/syslog`
 chkrotate2=`grep "/var/log/secure" /etc/logrotate.d/syslog`
 chkrotate3=`grep "/var/log/maillog" /etc/logrotate.d/syslog`
@@ -1490,7 +1466,938 @@ else
 fi
 printf "\n"
 
+GREEN="\033[0;32m"
+RED="\033[0;31m"
+NC="\033[0m"
+bold=$(tput bold)
+normal=$(tput sgr0)
+count=1
+echo "============================================================"
+echo -e "\t${bold}7.$count Set Password Expiration Days${normal}"
+echo "------------------------------------------------------------"
 
+value=$(cat /etc/login.defs | grep "^PASS_MAX_DAYS" | awk '{ print $2 }')
+
+standard=90 
+
+if [ ! $value = $standard ]; then
+  echo "Current PASS_MAX_DAYS = $value"
+  echo "Result: FAILED! (PASS_MAX_DAYS should be set to less than 90 days)"
+  ((count++))
+elif [ $value = $standard ]; then
+  echo "Current Password Maximum = $value"
+  echo "Result: PASSED! (PASS_MAX_DAYS is set to less than 90 days)"
+  ((count++))
+else
+  echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+   ((count++))
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Set Password Change Minimum Number of Days${normal}"
+echo "------------------------------------------------------------"
+value=$(cat /etc/login.defs | grep "^PASS_MIN_DAYS" | awk '{ print $2 }')
+
+standard=7 
+
+if [ ! $value = $standard ]; then
+	echo "Current PASS_MIN_DAYS = $value"
+	echo "Result: FAILED! (PASS_MIN_DAYS should be set to more than 7 days)"
+	((count++))
+elif [ $value = $standard ]; then
+	echo "Current PASS_MIN_DAYS = $value"
+	echo "Result: PASSED! (PASS_MIN_DAYS is be set to more than 7 days)"
+	((count++))
+else
+	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+   ((count++))
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Set Password Expiring Warning Days${normal}"
+echo "------------------------------------------------------------"
+value=$(cat /etc/login.defs | grep "^PASS_WARN_AGE" | awk '{ print $2 }')
+
+standard=7 
+
+if [ ! $value = $standard ]; then
+	echo "Current PASS_WARN_AGE = $value"
+	echo "Result: FAILED! (PASS_WARN_AGE should be set to more than 7 days)"
+	((count++))
+elif [ $value = $standard ]; then
+	echo "Current PASS_WARN_AGE = $value"
+	echo "Result: PASSED! (PASS_WARN_AGE is be set to more than 7 days)"
+	((count++))
+else
+	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+   ((count++))
+fi
+#########################################################################
+#7.4 Disable System Accounts
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Disable System Accounts${normal}"
+echo "------------------------------------------------------------"
+current=$(egrep -v "^\+" /etc/passwd | awk -F: '($1!="root" && $1!="sync" && $1!="shutdown" && $1!="halt" && $3<1000 && $7!="/sbin/nologin" && $7!="/bin/false") { print $1 }')
+
+if [ -z "$current" ]; then
+	echo "Result: PASSED! (No system accounts can be accessed)"
+	((count++))
+elif [ ! -z "$current" ]; then
+	echo "Result: FAILED! (System account(s) can be accessed)"
+	((count++))
+else
+	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+	((count++))
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Set Default Group for root Account${normal}"
+echo "------------------------------------------------------------"
+
+current=$(grep "^root:" /etc/passwd | cut -f4 -d:)
+
+if [ "$current" == 0 ]; then
+        echo "Result: PASSED! (Default group for root configured correctly)"
+	((count++))
+else
+       echo "Result: FAILED! (Default group for root configured incorrectly)"
+	((count++))
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Set Default umask for Users${normal}"
+echo "------------------------------------------------------------"
+
+current=$(egrep -h "\s+umask ([0-7]{3})" /etc/bashrc /etc/profile | awk '{print $2}')
+
+counter=0
+
+for line in ${current}
+do
+	if [ "${line}" != "077" ] 
+	then
+       		((counter++))	
+	fi
+done
+
+if [ ${counter} == 0 ]
+then 
+	 echo "Result: PASSED! (Umask is set to 077)"
+	((count++))
+else     
+	 echo "Result: FAILED! (Umask is not set to 077)"
+	((count++))
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Lock Inactive User Accounts${normal}"
+echo "------------------------------------------------------------"
+
+current=$(useradd -D | grep INACTIVE | awk -F= '{print $2}')
+
+if [ "${current}" -le 30 ] && [ "${current}" -gt 0 ]
+then
+        echo "Result: PASSED! (Configured user accounts to be locked for 35 or more days)"
+		((count++))
+else
+		echo "Current number of days set = $current"
+        echo "Result: FAILED! (Did not configure user accounts to be locked for 35 or more days)"
+		((count++))
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Ensure Password Fields Are Not Empty${normal}"
+echo "------------------------------------------------------------"
+
+current=$(cat /etc/shadow | awk -F: '($2 == "") { print $1 }')
+
+if [ "$current" = "" ];then
+	echo "Result: PASSED! (All users have password)"
+	((count++))
+	#accounts that were newly created without passwords are locked by default, their second field are "!!" thus, not empty
+else
+	echo "Accounts with no passwords : $current"
+    echo "Result: FAILED! (Not all users have password)"
+	((count++))
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Verify No Legacy "+" Entries Exist in /etc/passwd, /etc/shadow\n\t and /etc/group files${normal}"
+echo "------------------------------------------------------------"
+
+passwd=$(grep '^+:' /etc/passwd) 
+shadow=$(grep '^+:' /etc/shadow)
+group=$(grep '^+:' /etc/group)
+
+if [ -z "$passwd" -a -z "$shadow" -a -z "$group" ];then
+	echo "Result: PASSED! (No legacy + Entries in all 3 files)"
+	((count++))
+elif [ -n "$passwd" -a -z "$shadow" -a -z "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/passwd)"
+	((count++))
+elif [ -n "$passwd" -a -n "$shadow" -a -z "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/passwd & /etc/shadow)"
+	((count++))
+elif [ -n "$passwd" -a -z "$shadow" -a -n "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/passwd & /etc/group)"
+	((count++))
+elif [ -z "$passwd" -a -n "$shadow" -a -z "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/shadow)"
+	((count++))
+elif [ -z "$passwd" -a -n "$shadow" -a -n "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/shadow & /etc/group)"
+	((count++))
+elif [ -z "$passwd" -a -n "$shadow" -a -n "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/shadow & /etc/group)"
+	((count++))
+elif [ -z "$passwd" -a -z "$shadow" -a -n "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/group)"
+	((count++))
+else
+	echo "Result: FAILED! (Legacy + Entries present in all 3 files)"
+	((count++))
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Verify No UID 0 Accounts Exist Other Than Root${normal}"
+echo "------------------------------------------------------------"
+
+current=$(/bin/cat /etc/passwd | /bin/awk -F: '($3 ==0) { print $1 }')
+
+if [ "$current" = "root" ];then
+	echo "Result: PASSED! (No other user has a UID of 0)"
+	((count++))
+else
+	echo "Result: FAILED! (Another user has a UID of 0)"
+	((count++))
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}7.$count Ensure root PATH Integrity${normal}"
+echo "------------------------------------------------------------"
+
+check=0
+
+#Check for Empty Directory in PATH (::)
+if [ "`echo $PATH | grep ::`" != "" ]
+then
+	#echo "Empty Directory in PATH (::)"
+	((check++))
+fi
+
+#Check for Trailing : in PATH
+if [ "`echo $PATH | grep :$`" != "" ]
+then
+	#echo "Trailing : in PATH"
+	((check++))
+fi
+
+p=`echo $PATH | sed -e 's/::/:/' -e 's/:$//' -e 's/:/ /g'`
+set -- $p
+while [ "$1" != "" ]
+do
+	#Check if PATH contains .
+        if [ "$1" = "." ]
+        then
+		#echo "PATH contains ."
+		((check++))
+		shift
+		continue
+        fi
+	
+	#Check if PATH entry is a directory
+        if [ -d $1 ]
+        then
+                dirperm=`ls -ldH $1 | cut -f1 -d" "`
+                #Check if Group Write permission is set on directory
+		if [ `echo $dirperm | cut -c6` != "-" ]
+                then
+			#echo "Group Write permission set on directory $1"
+			((check++))
+                fi
+		#Check if Other Write permission is set on directory
+                if [ `echo $dirperm | cut -c9` != "-" ]
+		then
+			#echo "Other Write permission set on directory $1"
+			((check++))
+                fi
+		
+		#Check if PATH entry is owned by root
+                dirown=`ls -ldH $1 | awk '{print $3}'`
+                if [ "$dirown" != "root" ]
+                then
+                       #echo $1 is not owned by root
+			((check++))
+                fi
+        else
+		#echo $1 is not a directory
+		((check++))
+        fi
+	shift
+done
+
+#echo ${check}
+if [ ${check} == 0 ]
+then
+	echo "Result: PASSED! (Path is set correctly)"
+	((count++))
+elif [ ${check} != 0 ]
+then
+	echo "Result: FAILED! (Path is not set correctly)"
+	((count++))
+else
+	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+	((count++))
+fi
+#########################################################################
+
+echo ' '
+echo "============================================================"
+echo -e "\t${bold}7.$count Check Permissions on User Home Directories${normal}"
+echo "------------------------------------------------------------"
+echo ' '
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+if [ -z "$intUserAcc" ]
+then
+        echo "Result: Passed! - There is no interactive user account."
+        echo ' '
+else
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+
+                echo "Checking user home directory $line"
+                permission="$(ls -ld $line)"
+                echo " Permission is ${permission:0:10}"
+                ## check 6th field ##
+                if [ ${permission:5:1} == *"w"* ]
+                then
+                        echo -e "${RED}(1) Result: Failed! (6th field of permission is w ) ${NC}"
+                else
+                        echo -e "${GREEN}(1) Result: Passed! (6th field of permission is '-') ${NC}"
+                fi
+
+                ## check 8th field ##
+                if [ ${permission:7:1} == "-" ]
+                then
+                        echo -e "${GREEN}(2) Result: Passed! (8th field of permission is '-') ${NC}"
+                else
+                        echo -e "${RED}(2) Result: Failed! (8th field of permission is not '-') ${NC}"
+ fi
+
+                ## check 9th field ##
+                if [ ${permission:8:1} == "-" ]
+                then
+                        echo -e "${GREEN}(3) Result: Passed! (9th field of permission is '-') ${NC}"
+                else
+                        echo -e "${RED}(3) Result: Failed! (9th field of permission is not '-') ${NC}"
+                fi
+
+                ## check 10th field ##
+                if [ ${permission:9:1} == "-" ]
+                then
+                        echo -e "${GREEN}(4) Result: Passed! (10th field of permission is '-') ${NC}"
+                else
+                        echo -e "${RED}(4) Result: Failed! (10th field of permission is not '-') ${NC}"
+                fi
+                echo " "
+        done
+fi
+((count++))
+####################################### 7.13 #######################################
+
+echo "============================================================"
+echo -e "\t${bold}7.$count Check User Dot File Permissions${normal}"
+echo "------------------------------------------------------------"
+
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+if [ -z "$intUserAcc" ]
+then
+        echo "Result: Passed! - There is no interactive user account."
+        echo ' '
+else
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+
+                echo "Checking hidden files in user home directory $line"
+                cd $line
+                hiddenfiles="$(echo .*)"
+
+                if [ -z "$hiddenfiles" ]
+                then
+echo " Result: There is no hidden files"
+                else
+                        for file in ${hiddenfiles[*]}
+                        do
+                                permission="$(stat -c %A $file)"
+                                echo " Checking hidden file $file"
+                                echo "  Permission is $permission"
+
+                                ## check 6th field ##
+                                if [ ${permission:5:1} == *"w"* ]
+                                then
+                                        echo -e "${RED}(1)Result: Failed! (6th field of permission is 'w') ${NC}"
+                                else
+                                        echo -e "${GREEN}(1)Result: Passed! (6th field of permission is not 'w') ${NC}"
+                                fi
+
+                                ## check 9th field ##
+                                if [ ${permission:8:1} == *"w"* ]
+                                then
+                                        echo -e "${RED}(2)Result: Failed! (9th field of permission is 'w') ${NC}"
+                                else
+                                        echo -e "${GREEN}(2)Result: Passed! (9th field of permission is not 'w') ${NC}"
+                                fi
+ echo ' '
+                        done
+                fi
+        done
+fi
+((count++))
+####################################### 7.14 #######################################
+
+echo "============================================================"
+echo -e "\t${bold}7.$count Check Existence of and Permissions on User .netrc Files${normal}"
+echo "------------------------------------------------------------"
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+if [ -z "$intUserAcc" ]
+then
+        echo " Result: Passed! (There is no interactive user account)"
+        echo ' '
+else
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+ echo "Checking user home directory $line"
+                permission="$(ls -al $line | grep .netrc)"
+                if  [ -z "$permission" ]
+                then
+                        echo " Result: There is no .netrc file"
+                        echo ' '
+                else
+                        ls -al $line | grep .netrc | while read -r netrc; do
+                                echo " $netrc"
+
+                                ## check 5th field ##
+                                if [ ${netrc:4:6} == "------" ]
+                                then
+                                        echo -e " ${GREEN}Result: Passed! (5th-10th field of permission is '------') ${NC}"
+                                else
+                                        echo -e " ${RED}Result: Failed! (5th-10th field of permission is not '------') ${NC}"
+                                fi
+
+                                echo ' '
+                        done
+                fi
+        done
+fi
+((count++))
+#################################### 7.15 ####################################
+
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Presence of User .rhosts Files${normal}"
+echo "------------------------------------------------------------"
+
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+if [ -z "$intUserAcc" ]
+then
+        echo "Result: Passed (There is no interactive user account)"
+        echo ' '
+else
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+                echo "Checking user home directory $line"
+                rhostsfile="$(ls -al $line | grep .rhosts)"
+
+ if  [ -z "$rhostsfile" ]
+                then
+                        echo " Result: There is no .rhosts file"
+                        echo ' '
+                else
+                        ls -al $line | grep .rhosts | while read -r rhosts; do
+                                for file in $rhosts
+                                do
+                                        if [[ $file = *".rhosts"* ]]
+                                        then
+                                                echo " Checking .rhosts file $file"
+                                                #check if file created user matches directory user
+                                                filecreateduser=$(stat -c %U $line/$file)
+                                                if [[ $filecreateduser = *"$line"* ]]
+                                                then
+                                                       echo -e "${GREEN}Result: Passed! ($file created user is the same user in the directory)${NC}"
+
+ echo ' '
+                                                else
+                                                        echo -e "${RED}Result: Failed! ($file created user is not the same in the directory)${NC}"
+
+ echo ' '
+                                                fi
+                                        fi
+                                done                    
+                        done
+                fi
+        done
+fi
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check Groups in /etc/passwd${normal}"
+echo "------------------------------------------------------------"
+#For every row in /etc/passwd
+for i in $(cat /etc/passwd | cut -d : -f 4 | sort -u); do 
+#Verifies GID defined in /etc/group
+	grep -q -P "^.*?:x:$i:" /etc/group
+		if [ $? -ne 0 ]; then 
+			echo "Results: Failed! (Group $i is referenced by /etc/passwd but does not exists in /etc/group)"
+		else
+			echo "Results: Pass! (Group: $i)"
+		fi
+done
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check That Users Are Assigned Valid Home Directories and Home Directory Ownership is Correct${normal}"
+echo "------------------------------------------------------------"
+#In etc/passwd, check if home directory is defined in field no. 6. See if valid and exist
+cat /etc/passwd | awk -F : '{print $1, $3, $6}' | while read user uid dir; do 
+	if [ $uid -ge 1000 -a ! -d "$dir" -a $user != "nfsnobody" ]; then 
+		printf "\e[31mResult: Failed! (Home directory ($dir) of user $user does not exist)\e[0m\n"
+	elif [ ! -d $dir ] ; then
+		printf "\e[31mResult: Failed! (Home Directory of $user cannot be found!)\e[0m\n"
+	else 
+		printf "\e[32mResult: Passed! - $user $dir\e[0m\n"
+		echo "Checking if Home directory ownership of $user is correct"
+		ls -ld $dir | awk '{print $3, $4}' | while read owner user1; do
+		if [ "$owner" != "$user1" ] && [ $? -eq 0 ]; then
+			printf "\e[31mThe home directory ($dir) of user $user1 is owned by $owner.\e[0m\n"
+		else 
+			printf "\e[32mResult: Passed!\e[0m\n"
+		fi
+		done
+	fi
+done
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Duplicate UIDs${normal}"
+echo "------------------------------------------------------------"
+#Get etc/passwd file
+cat /etc/passwd| cut -f3 -d":" | sort -n | uniq -c | while read x ; do
+[ -z "${x}" ] && break
+set - $x
+if [ $1 -gt 1 ]; then
+#Checks for duplicate UIDs
+	users=`/bin/gawk -F: '($3 == n) { print $1 }' n=$2 /etc/passwd| /usr/bin/xargs`
+	printf "\e[31mResult: Failed! (Duplicate UID: ($2))\e[0m\n"
+else
+	printf "\e[32mResult: Passed! (UID: ($2))\e[0m\n"
+fi
+done
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Duplicate GIDs${normal}"
+echo "------------------------------------------------------------"
+printf "Checking for duplicate GIDs\n"
+#Get etc/group file
+cat /etc/group | cut -f3 -d":" | sort -n | uniq -c | while read x ; do
+[ -z "${x}" ] && break
+set - $x
+if [ $1 -gt 1 ]; then
+#Checks for duplicate GIDs
+	grps=`/bin/gawk -F: '($3 == n) { print $1 }' n=$2 /etc/group | /usr/bin/xargs`
+	printf "\e[31mResult: Failed! (Duplicate GID: ($2))\e[0m\n"
+else
+	printf "\e[32mResult: Passed! (GID: ($2))\e[0m\n"
+fi
+done
+((count++))
+#######################################################################
+#7.20 - Check that reserved UIDs are assigned to only system accounts
+
+echo "============================================================"
+echo -e "\t${bold}7.$count Check that reserved UIDs are assigned to only system accounts${normal}"
+echo "------------------------------------------------------------"
+
+#All System Accounts
+checkUsers="root bin daemon adm lp sync shutdown halt mail news uucp operator games gopher ftp nobody nscd vcsa rpc nscd vcsa rpc mailnull smmsp pcap ntp dbus avahi sshd rpcuser nfsnobody haldaemon avahi-autoipd distcache apache oprofile webalizer dovecot squid named xfs gdm sabayon usbmuxd rtkit abrt saslauth pulse postfix tcpdump"
+#Checks that reserved UIDs are assigned to system accounts
+cat /etc/passwd | awk -F : '($3 < 500) {print $1, $3}' | while read user uid; do found=0
+for tUser in ${checkUsers}
+	do
+		if [ ${user} = ${tUser} ]; then
+		found=1
+		fi
+	done
+	if [ $found -eq 0 ]; then
+	echo "Result: Failed! (User $user has a reserved UID ($uid))"
+	fi
+done
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Duplicate User Names${normal}"
+echo "------------------------------------------------------------"
+#Get etc/passwd file
+cat /etc/passwd | cut -f1 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x ; do [ -z "${x}" ] && break
+set - $x
+#Checks for duplicate user names
+if [ $1 -gt 1 ]; then
+	uids=`/bin/gawk -F: '($1 == n) { print $3 }' n=$2 \/etc/passwd | xargs`
+	printf "\e[31mResult: Failed! (Duplicate User Name: $2)\e[0m\n"
+else
+	printf "\e[32mResult: Passed! ($2)\e[0m\n"
+fi
+done
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Duplicate Group Names${normal}"
+echo "------------------------------------------------------------"
+#Get etc/group file
+cat /etc/group | cut -f1 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x ; do [ -z "${x}" ] && break
+set - $x
+#Checks for duplicate group names
+if [ $1 -gt 1 ]; then
+	gids=`/bin/gawk -F: '($1 == n) { print $3 }' n=$2 /etc/group | xargs`
+	printf "\e[31mResult: Failed! (Duplicate Group Name: $2)\e[0m\n"
+else 
+	printf "\e[32mResult: Passed! ($2)\e[0m\n"
+fi
+	done
+((count++))
+echo "============================================================"
+echo -e "\t${bold}7.$count Check for Presence of User .forward Files${normal}"
+echo "------------------------------------------------------------"
+
+#Get users then check for the presence of .forward files
+for dir in `/bin/cat /etc/passwd| /bin/awk -F: '{ print $6 }'`; do
+if [ ! -h "$dir/.forward" -a -f "$dir/.forward" ]; then
+	echo ".forward file $dir/.forward exists"
+else 
+	printf "\e[32mResult: Passed! - $dir\e[0m\n"
+fi
+	done
+
+
+#################################################################
+count=1
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}8.$count Set Warning Banner for Standard Login Services${normal}"
+echo "------------------------------------------------------------"
+current=$(cat /etc/motd)
+
+standard="WARNING: UNAUTHORIZED USERS WILL BE PROSECUTED!"
+
+if [ "$current" == "$standard" ]; then
+        echo "Result: PASSED! (Warning banner has been implemented correctly)"
+else
+        echo "Result: FAILED! (Warning banner has not implemented correctly)"
+fi
+#########################################################################
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}8.$count Remove OS Information from Login Warning Banners${normal}"
+echo "------------------------------------------------------------"
+
+current1=$(egrep '(\\v|\\r|\\m|\\s)' /etc/issue)
+current2=$(egrep '(\\v|\\r|\\m|\\s)' /etc/motd)
+current3=$(egrep '(\\v|\\r|\\m|\\s)' /etc/issue.net)
+
+string1="\\v"
+string2="\\r"
+string3="\\m"
+string4="\\s"
+
+if [[ $current1 =~ $string1 || $current1 =~ $string2 || $current1 = ~$string3 || $current1 =~ $string4 ]]; then
+        echo "Result: FAILED! [OS Information found in /etc/issue]"
+else
+        echo "(1/3) Result: PASSED! (/etc/issue has no issues)"
+fi
+
+if [[ $current2 =~ $string1 || $current2 =~ $string2 || $current2 = ~$string3 || $current2 =~ $string4 ]]; then
+        echo "Result: FAILED! [OS Information found in /etc/motd]"
+else
+        echo "(2/3) Result: PASSED! (/etc/motd has no issues)"
+fi
+
+if [[ $current3 =~ $string1 || $current3 =~ $string2 || $current3 = ~$string3 || $current4 =~ $string4 ]]; then
+        echo "Result: FAILED! [OS Information found in /etc/issue.net]"
+else
+        echo "(3/3) Result: PASSED! (/etc/issue.net has no issues)"
+fi
+####################################################################################
+count=1
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}9.$count Enable Anacron Daemon${normal}"
+echo "------------------------------------------------------------"
+#Check whether Anacron Daemon is enabled or not
+checkanacron=`rpm -q cronie-anacron`
+if [ -n "$checkanacron" ]
+then
+	echo "Result: PASSED! (Anacron Daemon has been installed)"
+	((count++))
+else
+	echo "Result: FAILED! (Anacron Daemon has not been installed)"
+	((count++))
+fi
+
+#Check if Crond Daemon is enabled
+checkCronDaemon=$(systemctl is-enabled crond)
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}9.$count Enable crond Daemon${normal}"
+echo "------------------------------------------------------------"
+if [[ $checkCronDaemon = "enabled" ]]
+then
+	echo "Result: PASSED! (Cron Daemon has been installed)"
+	((count++))
+else
+	echo "Result: FAILED! (Cron Daemon has not been installed)"
+	((count++))
+fi
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}9.$count Set User/Group Owner and Permission on /etc/anacrontab${normal}"
+echo "------------------------------------------------------------"
+
+#Check if the correct permissions is configured for /etc/anacrontab
+anacrontabFile="/etc/anacrontab"
+if [ -e "$anacrontabFile" ]
+then
+	anacrontabPerm=$(stat -c "%a" "$anacrontabFile")
+	anacrontabRegex="^[0-7]00$"
+	anacrontabOwn=$(stat -c "%U" "$anacrontabFile")
+	anacrontabGrp=$(stat -c "%G" "$anacrontabFile")
+	if [[ $anacrontabPerm =~ $anacrontabRegex ]]
+	then
+			if [ $anacrontabOwn = "root" ]
+				then
+						if [ $anacrontabGrp = "root" ]
+							then
+								echo "Result: PASSED! (Permissions for $anacrontabFile has been correctly configured)"
+								((count++))
+						else
+								echo "Result: FAILED! (Group owner is not root, current group owner: ($anacrontabFile): $anacrontabGrp )"
+								((count++))
+			fi	
+			else
+				echo "Result: FAILED! (Owner of the file is not root, the current owner is ($anacrontabFile): $anacrontabOwn)"
+				((count++))
+			fi
+	else
+		echo "Result: FAILED! (Permissions for $anacrontabFile has not been correctly configured)"
+		((count++))
+		
+	fi
+
+else
+	echo "Result: FAILED! (The Anacrontab file does not exist)"
+fi
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}9.$count Set User/Group Owner and Permission on /etc/crontab${normal}"
+echo "------------------------------------------------------------"
+#Check if the correct permissions has been configured for /etc/crontab
+crontabFile="/etc/crontab"
+if [ -e "$crontabFile" ]
+then
+	crontabPerm=$(stat -c "%a" "$crontabFile")
+	crontabRegex="^[0-7]00$"
+	if [[ $crontabPerm =~ $crontabRegex ]]
+		then
+			crontabOwn=$(stat -c "%U" "$crontabFile")
+			if [ $crontabOwn = "root" ]
+			then
+			crontabGrp=$(stat -c "%G" "$crontabFile")
+				if [ $crontabGrp = "root" ]
+				then
+					echo "Result: PASSED! Crontabfile has been configured correctly"
+					((count++))
+				else
+					echo "Result: FAILED! (Group owner of the file is not root, current group user: ($crontabFIle): $crontabGrp) "
+					((count++))
+				fi
+			else
+				echo "Result: FAILED! (Owner of the file is not root, current user: ($crontabFile): $crontabOwn)"
+				((count++))
+			fi
+	else
+		echo "Result: FAILED! (Permissions has not been set correctly for $crontabFile)"
+		((count++))
+			fi
+else
+	echo "Result: FAILED! (The crontab file ($crontabFile) does not exist)"
+	((count++))
+fi
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}9.$count Set User/Group Owner and Permission on /etc/cron.\n\t[hourly,daily,weekly,monthly]${normal}"
+echo "------------------------------------------------------------"
+
+#Check if the correct permissions has been set for /etc/cron.XXXX
+checkCronHDWMPerm(){
+	local cronHDWMType=$1
+	local cronHDWMFile="/etc/cron.$cronHDWMType"
+
+	if [ -e "$cronHDWMFile" ]
+	then
+		local cronHDWMPerm=$(stat -c "%a" "$cronHDWMFile")
+		local cronHDWMRegex="^[0-7]00$"
+		if [[ $cronHDWMPerm =~ $cronHDWMRegex ]]
+			then
+				local cronHDWMOwn="$(stat -c "%U" "$cronHDWMFile")"
+				if [ $cronHDWMOwn = "root" ]
+				then
+					local cronHDWMGrp="$(stat -c "%G" "$cronHDWMFile")"
+					if [ $cronHDWMGrp = "root" ]
+					then
+						echo "Result: PASSED! (All configurations are correctly configured for $cronHDWMFile)"
+						((count++))
+					else
+						echo "Result: FAILED! (Group Owner of the file is ($cronHDWMFile): $cronHDWMGrp instead of Root )"
+						((count++))
+				fi
+				else
+					echo "Result: FAILED! (Owner of the file ($cronHDWMFile): $cronHDWMOwn instead of Root)"
+					((count++))
+				fi
+		else
+			echo "Result: FAILED! (Permissions has not been set correctly for $cronHDWMFile)"
+			((count++))
+		fi
+	else
+		echo "Result: FAILED! (File ($cronHDWMFile) does not exist)"
+		((count++))
+	fi	
+}
+
+checkCronHDWMPerm "hourly"
+checkCronHDWMPerm "daily"
+checkCronHDWMPerm "weekly"
+checkCronHDWMPerm "monthly"
+printf "\n"
+#Check if the permissions has been set correctly for /etc/cron.d
+echo "============================================================"
+echo -e "\t${bold}9.$count Set User/Group Owner and Permission on /etc/cron.d${normal}"
+echo "------------------------------------------------------------"
+cronDFile="/etc/cron.d"
+if [ -e "$cronDFile" ]
+then
+	cronDPerm=$(stat -c "%a" "$cronDFile")
+	cronDRegex="^[0-7]00$"
+	if [[ $cronDPerm =~ $cronDRegex ]]
+		then
+			cronDOwn=$(stat -c "%U" "$cronDFile")
+			if [ $cronDOwn = "root" ]
+			then
+				cronDGrp=$(stat -c "%G" "$cronDFile")
+				if [ $cronDGrp = "root" ]
+				then
+					echo "Result: PASSED! (All configurations are correctly configured for $cronHDWMFile)"
+					((count++))
+				else
+					echo "Result: FAILED! (Group owner of the file ($cronDFile): $cronDGrp instead of Root"
+					((count++))
+				fi
+			else
+				echo "Result: FAILED! (Owner of the file ($cronDFile): $cronDOwn instead of root)"
+				((count++))
+			fi
+		else
+			echo "Result: FAILED! (Permissions has not been set correctly for $cronDFile)"
+			((count++))
+		fi
+else
+	echo "Result: FAILED! (The cron.d file ($cronDFile) does not exist)"
+	((count++))
+fi
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}9.$count Restrict at Daemon${normal}"
+echo "------------------------------------------------------------"
+#Check if /etc/at.deny is deleted and that a /etc/at.allow exists and check the permissions of the /etc/at.allow file
+atDenyFile="/etc/at.deny"
+if [ -e "$atDenyFile" ]
+then
+	echo "Result: FAILED! (Please ensure that the file $atDenyFile is deleted)"
+else
+	echo "Result: PASSED! ($atDenyFile is deleted as recommended)"
+fi
+
+atAllowFile="/etc/at.allow"
+if [ -e "$atAllowFile" ]
+then
+        atAllowPerm=$(stat -c "%a" "$atAllowFile")
+        atAllowRegex="^[0-7]00$"
+        if [[ $atAllowPerm =~ $atAllowRegex ]]
+        then
+				atAllowOwn=$(stat -c "%U" "$atAllowFile")
+				if [ $atAllowOwn = "root" ]
+					then
+						atAllowGrp=$(stat -c "%G" "$atAllowFile")
+						if [ $atAllowGrp = "root" ]
+							then
+								echo "Result: PASSED! ($atAllowFile configured correctly)"
+						else
+								echo "Result: FAILED! (Group owner of the file ($atAllowFile): $atAllowGrp instead of Root"
+						fi
+				else
+					echo "Result: FAILED! (Owner of the file ($atAllowFile): $atAllowOwn instead of Root)"
+					fi
+		else
+			echo "Result: FAILED! (Permissions has not been set correctly for $atAllowFile)"
+				fi
+else
+    echo "Result: FAILED! ($atAllowFile is not created)"
+    fi
+printf "\n"
+echo "============================================================"
+echo -e "\t${bold}9.$count Restrict at/cron to Authorized User${normal}"
+echo "------------------------------------------------------------"
+#Check if /etc/cron.deny is deleted and that a /etc/cron.allow exists and check the permissions of the /etc/cron.allow file
+cronDenyFile="/etc/cron.deny"
+if [ -e "$cronDenyFile" ]
+then
+        echo "Result: Failed! (Please ensure that the file $cronDenyFile is deleted)"
+else
+	echo "Result: PASSED! ($cronDenyFile has been deleted)"
+fi
+
+cronAllowFile="/etc/cron.allow"
+if [ -e "$cronAllowFile" ]
+then
+    	cronAllowPerm=$(stat -c "%a" "$cronAllowFile")
+       	cronAllowRegex="^[0-7]00$"
+        if [[ $cronAllowPerm =~ $cronAllowRegex ]]
+        then
+               	cronAllowOwn=$(stat -c "%U" "$cronAllowFile")
+				if [ $cronAllowOwn = "root" ]
+				then
+					cronAllowGrp=$(stat -c "%G" "$cronAllowFile")
+					if [ $cronAllowGrp = "root" ]
+					then
+						echo "Result: PASSED! ($cronAllowFile has been configured correctly)"
+					else
+						echo "Result: FAILED! (Group owner of the file ($cronAllowFile): $cronAllowGrp instead of root"
+        fi
+				else
+					echo "Result: FAILED! (Owner of the file ($atAllowFile): $cronAllowOwn instead of Root)"
+				fi
+        else
+               	echo "Result: FAILED! (Permissions has not been set correctly for $cronAllowFile)"
+       	fi
+else
+    	echo "Result: FAILED! (Please ensure that a $cronAllowFile is created for security purposes)"
+fi
+
+echo ' '
+echo -e "\t\t\t${bold}End of verification.${normal}"
+echo ' '
 
 # Force exit
 read -n 1 -s -r -p "Press any key to exit!"
