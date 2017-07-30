@@ -295,5 +295,182 @@ fi
 
 printf "\n\n"
 
+# 1.11 to 1.13
+echo -e "\e[4m1.11 to 1.13 : Add nodev, nosuid and no exec Option to Removable Media Partitions\e[0m\n"
+cdcheck=`grep cd /etc/fstab`
+if [ -n "$cdcheck" ]
+then
+	cdnodevcheck=`grep cdrom /etc/fstab | grep nodev`
+	if [ -z "$cdnodevcheck" ]
+	then
+		sed -ie 's:\(.*\)\(\s/cdrom\s\s*\)\(\w*\s*\)\(\w*\s*\)\(.*\):\1\2\3nodev,\4\5:' /etc/fstab
+		echo "nodev for /cdrom fixed"
+	else
+		echo "nodev for /cdrom is already fixed"
+	fi
+
+	cdnosuidcheck=`grep cdrom /etc/fstab | grep suid`
+	if [ -z "$cdnosuidcheck" ]
+	then
+		sed -ie 's:\(.*\)\(\s/cdrom\s\s*\)\(\w*\s*\)\(\w*\s*\)\(.*\):\1\2\3nosuid,\4\5:' /etc/fstab
+		echo "nosuid for /cdrom fixed"
+	else
+		echo "nosuid for /cdrom is already fixed"
+	fi
+
+
+	cdnoexeccheck=`grep cdrom /etc/fstab | grep exec`
+	if [ -z "$cdnoexeccheck" ]
+	then
+		sed -ie 's:\(.*\)\(\s/cdrom\s\s*\)\(\w*\s*\)\(\w*\s*\)\(.*\):\1\2\3noexec,\4\5:' /etc/fstab
+		echo "noexec for /cdrom fixed"
+	else
+		echo "noexec for /cdrom is already fixed"
+	fi
+else
+	echo "/cdrom is not mounted"
+fi
+
+printf "\n\n"
+# 1.14
+echo -e "\e[4m1.14 : Set Sticky Bit on All World-Writable Directories\e[0m\n"
+checksticky=`df --local -P | awk {'if (NR!=1) print $6'} | xargs -l '{}' find '{}' -xdev -type d \( -perm -0002 -a ! -perm -1000 \) 2> /dev/null`
+
+if [ -n "$checksticky" ]
+then
+	df --local -P | awk {'if (NR!=1) print $6'} | xargs -l '{}' find '{}' -xdev -type d \( -perm -0002 -a ! -perm -1000 \) 2> /dev/null | xargs chmod o+t
+
+else
+	echo "Sticky bit is already set"
+fi
+
+printf "\n\n"
+
+# 1.15
+echo -e "\e[4m1.15 : Disable Mounting of Legacy Filesystems\e[0m\n"
+checkcramfs=`/sbin/lsmod | grep cramfs`
+checkfreevxfs=`/sbin/lsmod | grep freevxfs`
+checkjffs2=`/sbin/lsmod | grep jffs2`
+checkhfs=`/sbin/lsmod | grep hfs`
+checkhfsplus=`/sbin/lsmod | grep hfsplus`
+checksquashfs=`/sbin/lsmod | grep squashfs`
+checkudf=`/sbin/lsmod | grep udf`
+
+if [ -n "$checkcramfs" -o -n "$checkfreevxfs" -o -n "$checkjffs2" -o -n "$checkhfs" -o -n "$checkhfsplus" -o -n "$checksquashfs" -o -n "$checkudf" ]
+then
+	echo "install cramfs /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install freevxfs /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install jffs2 /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install hfs /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install hfsplus /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install squashfs /bin/true" >> /etc/modprobe.d/CIS.conf
+	echo "install udf /bin/true" >> /etc/modprobe.d/CIS.conf
+else
+	echo "Legacy filesystems mounting is already disabled"
+fi
+
+printf "\n\n"
+# 2.1
+echo -e "\e[4m2.1 : Remove telnet Server & Clients\e[0m\n"
+checktelnetserver=`yum list telnet-server | grep "Available Packages"`
+if [ -n "$checktelnetserver" ]
+then
+	echo "Telnet-server is not installed, hence no action will be taken"
+else
+	echo "Telnet-server is installed, it will now be removed"
+	yum erase -y telnet-server
+fi 
+
+checktelnet=`yum list telnet | grep "Available Packages"`
+if [ -n "$checktelnet" ]
+then
+	echo "Telnet is not installed, hence no action will be taken"
+else
+	echo "Telnet is installed, it will now be removed"
+	yum erase -y telnet
+fi 
+
+printf "\n\n"
+
+# 2.2
+echo -e "\e[4m2.2 : Remove rshServer & Clients\e[0m\n"
+checkrshserver=`yum list rsh-server | grep "Available Packages"`
+if [ -n "$checkrshserver" ]
+then
+	echo "Rsh-server is not installed, hence no action will be taken"
+else
+	echo "Rsh-server is installed, it will now be removed"
+	yum erase -y rsh-server
+fi 
+
+checkrsh=`yum list rsh | grep "Available Packages"`
+if [ -n "$checkrsh" ]
+then
+	echo "Rsh is not installed, hence no action will be taken"
+else
+	echo "Rsh is installed, it will now be removed"
+	yum erase -y rsh
+fi 
+
+printf "\n\n"
+
+# 2.3
+echo -e "\e[4m2.3 : Remove NIS Server and Clients\e[0m\n"
+checkypserv=`yum list ypserv | grep "Available Packages"`
+if [ -n "$checkypserv" ]
+then
+	echo "Ypserv is not installed, hence no action will be taken"
+else
+	echo "Ypserv is installed, it will now be removed"
+	yum erase -y ypserv
+fi 
+
+checkypbind=`yum list ypbind | grep "Available Packages"`
+if [ -n "$checkypbind" ]
+then
+	echo "Ypbind is not installed, hence no action will be taken"
+else
+	echo "Ypbind is installed, it will now be removed"
+	yum erase -y ypbind
+fi
+
+printf "\n\n"
+
+# 2.4
+echo -e "\e[4m2.4 : Remove tftpServer and Clients\e[0m\n"
+
+checktftp=`yum list tftp | grep "Available Packages"`
+if [ -n "$checktftp" ]
+then
+	echo "Tftp is not installed, hence no action will be taken"
+else
+	echo "Tftp is installed, it will now be removed"
+	yum erase -y tftp
+fi
+
+checktftp=`yum list tftp-server| grep "Available Packages"`
+if [ -n "$checktftp-server" ]
+then
+	echo "Tftp-server is not installed, hence no action will be taken"
+else
+	echo "Tftp-server is installed, it will now be removed"
+	yum erase -y tftp-server
+fi 
+
+printf "\n\n"
+
+# 2.5
+echo -e "\e[4m2.5 : Remove xinetd\e[0m\n"
+checkxinetd=`yum list xinetd | grep "Available Packages"`
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence no action will be taken"
+else
+	echo "Xinetd is installed, it will now be removed"
+	yum erase -y xinetd
+fi 
+
+printf "\n\n"
+
 read -n 1 -s -r -p "Press any key to exit!"
 kill -9 $PPID
