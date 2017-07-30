@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 
 trap '' 2
 trap '' SIGTSTP
@@ -1756,7 +1755,7 @@ else
 	printf "Monitoring SELinux Mandatory Access Controls : PASSED (/etc/selinux is configured)\n"
 fi
 #End of 6.2.1.9 coding
-
+#-----------------------------------------------------------------------------------------------------------------
 #6.2.1.10
 
 loginfail=`grep "\-w /var/log/faillog -p wa -k logins" /etc/audit/audit.rules`
@@ -1777,7 +1776,7 @@ then
 	then
 		echo "-w /var/log/tallylog -p wa -k logins" >> /etc/audit/audit.rules
 	fi
-	echo -e "\e[4m6.2.1.9 : Collect Login and Logout Events\e[0m\n"
+	echo -e "\e[4m6.2.1.10 : Collect Login and Logout Events\e[0m\n"
 	echo "Login and Logout Events collected"
 fi
 	
@@ -1803,7 +1802,7 @@ then
 	then
 		echo "-w /var/run/utmp -p wa -k session" >> /etc/audit/audit.rules
 	fi
-	echo -e "\e[4m6.2.1.9 : Collect Session Initiation Information\e[0m\n"
+	echo -e "\e[4m6.2.1.11 : Collect Session Initiation Information\e[0m\n"
 	echo "Session Initiation Information Collected"
 fi
 
@@ -1850,7 +1849,7 @@ then
 	then 
 		echo "-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod" >> /etc/audit/audit.rules
 	fi
-	echo -e "\e[4m6.2.1.9 : Collect Discretionary Access Control Permission Modification Events\e[0m\n"
+	echo -e "\e[4m6.2.1.12 : Collect Discretionary Access Control Permission Modification Events\e[0m\n"
 	echo "Discretionary Access Control Permission Modification Events Collected"
 fi
 pkill -P 1 -HUP auditd
@@ -1899,7 +1898,7 @@ then
 	then 
 		echo "-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 - k access" >>  /etc/audit/audit.rules
 	fi
-	echo -e "\e[4m6.2.1.9 : Collect Unsuccessful Unauthorized Access Attempts to Files\e[0m\n"
+	echo -e "\e[4m6.2.1.13 : Collect Unsuccessful Unauthorized Access Attempts to Files\e[0m\n"
 	echo "Unsuccessful Unauthorized Access Attempts to Files Collected"
 fi
 
@@ -1915,7 +1914,7 @@ checkpriviledgenotinfile=`grep -F -x -v -f /tmp/2.log /tmp/1.log`
 if [ -n "$checkpriviledgenotinfile" ]
 then
 	echo "$checkpriviledgenotinfile" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Collect Use of Privileged Commands\e[0m\n"
+	echo -e "\e[4m6.2.1.14 : Collect Use of Privileged Commands\e[0m\n"
 	echo "Use of Privileged Commands Collected"
 fi
 
@@ -1931,14 +1930,14 @@ bit32mountb32=`grep "\-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!
 if [ -z "$bit64mountb64" ]
 then
 	echo "-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Collect Successful File System Mounts\e[0m\n"
+	echo -e "\e[4m6.2.1.15 : Collect Successful File System Mounts\e[0m\n"
 	echo "Successful File System Mounts Collected"
 fi
 
 if [ -z "$bit64mountb32" ]
 then
 	echo "-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Collect Successful File System Mounts\e[0m\n"
+	echo -e "\e[4m6.2.1.15 : Collect Successful File System Mounts\e[0m\n"
 	echo "Successful File System Mounts Collected"
 fi
 
@@ -1947,7 +1946,7 @@ pkill -HUP -P 1 auditd
 if [ -z "$bit32mountb32" ]
 then
 	echo "-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Collect Successful File System Mounts\e[0m\n"
+	echo -e "\e[4m6.2.1.15 : Collect Successful File System Mounts\e[0m\n"
 	echo "Successful File System Mounts Collected"
 fi
 
@@ -1962,14 +1961,14 @@ bit32delb32=`grep "\-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -
 if [ -z "$bit64delb64" ]
 then
 	echo "-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Collect File Delection Events by User\e[0m\n"
+	echo -e "\e[4m6.2.1.16 : Collect File Delection Events by User\e[0m\n"
 	echo "File Delection Events by User Collected"
 fi
 
 if [ -z "$bit64delb32" ]
 then
 	echo "-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Collect File Delection Events by User\e[0m\n"
+	echo -e "\e[4m6.2.1.16 : Collect File Delection Events by User\e[0m\n"
 	echo "File Delection Events by User Collected"
 fi
 
@@ -1978,7 +1977,7 @@ pkill -HUP -P 1 auditd
 if [ -z "$bit32delb32" ]
 then
 	echo "-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Collect File Delection Events by User\e[0m\n"
+	echo -e "\e[4m6.2.1.16 : Collect File Delection Events by User\e[0m\n"
 	echo "File Delection Events by User Collected"
 fi
 
@@ -1991,7 +1990,7 @@ sudoers=`grep "\-w /etc/sudoers -p wa -k scope" /etc/audit/audit.rules`
 if [ -z "$sudoers" ]
 then
 	echo "-w /etc/sudoers -p wa -k scope" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Collect Changes to System Administrator Scope\e[0m\n"
+	echo -e "\e[4m6.2.1.17 : Collect Changes to System Administrator Scope\e[0m\n"
 	echo "Changes to System Administrator Scope Collected"
 fi
 pkill -HUP -P 1 auditd
@@ -2004,7 +2003,7 @@ auditrules='-w /var/log/sudo.log -p wa -k actions'
 if [ -z "$remauditrules" -o "$remauditrules" != "$auditrules" ] 
 then
 	echo "$auditrules" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Collect System Administrator Actions\e[0m\n"
+	echo -e "\e[4m6.2.1.18 : Collect System Administrator Actions\e[0m\n"
 	echo "System Administrator Actions Collected"
 fi
 
@@ -2022,21 +2021,21 @@ then
 	if [ -z "$remmod1" ]
 	then
 		echo "-w /sbin/insmod -p x -k modules" >> /etc/audit/audit.rules
-		echo -e "\e[4m6.2.1.9 : Collect Kernel Module Loading and Unloading\e[0m\n"
+		echo -e "\e[4m6.2.1.19 : Collect Kernel Module Loading and Unloading\e[0m\n"
 		echo "Kernel Module Loading and Unloading Collected"
 	fi
 
 	if [ -z "$remmod2" ]
 	then	
 		echo "-w /sbin/rmmod -p x -k modules" >> /etc/audit/audit.rules
-		echo -e "\e[4m6.2.1.9 : Collect Kernel Module Loading and Unloading\e[0m\n"
+		echo -e "\e[4m6.2.1.19 : Collect Kernel Module Loading and Unloading\e[0m\n"
 		echo "Kernel Module Loading and Unloading Collected"
 	fi
 
 	if [ -z "$remmod3" ]
 	then
 		echo "-w /sbin/modprobe -p x -k modules" >> /etc/audit/audit.rules
-		echo -e "\e[4m6.2.1.9 : Collect Kernel Module Loading and Unloading\e[0m\n"
+		echo -e "\e[4m6.2.1.19 : Collect Kernel Module Loading and Unloading\e[0m\n"
 		echo "Kernel Module Loading and Unloading Collected"
 	fi
 
@@ -2056,7 +2055,7 @@ immute='-e 2'
 if [ -z "$remimmute" -o "$remimmute" != "$immute" ]
 then
 	echo "$immute" >> /etc/audit/audit.rules
-	echo -e "\e[4m6.2.1.9 : Make the Audit Configuration Immutable\e[0m\n"
+	echo -e "\e[4m6.2.1.20 : Make the Audit Configuration Immutable\e[0m\n"
 	echo "Audit Configuration is Immutable"
 fi
 
@@ -2101,9 +2100,9 @@ then
 
 	if [ -z "$rotate6" ]
 	then
-		echo "/var/log/cron" //etc/logrotate.d/syslog
+		echo "/var/log/cron" /etc/logrotate.d/syslog
 	fi
-	echo -e "\e[4m6.2.1.9 : Configure logrotate\e[0m\n"
+	echo -e "\e[4m6.2.1.21 : Configure logrotate\e[0m\n"
 	echo "logrotate Configured"
 fi
 
@@ -2232,6 +2231,9 @@ do
 fi
 done
 echo "No UID 0 Accounts Exist Other Than Root"
+
+#-----------------------------------------------------------------------------------------------------------------
+
 count=11
 echo "============================================================"
 echo -e "\t${bold}7.$count Ensure root PATH Integrity${normal}"
@@ -3130,6 +3132,499 @@ else
         else
 		echo "(4/4) Remediation for 9.$count - Group Owner: Failed! (The group owner of the $cronAllowFile file cannot be set as root)"
 	fi
+fi
+
+#10.1 Set SSH Protocol to 2
+echo -e "\e[4m10.1 : Set SSH Protocol to 2\e[0m\n"
+remsshprotocol=`grep "^Protocol 2" /etc/ssh/sshd_config`
+if [ "$remsshprotocol" != "Protocol 2" ]
+then
+	sed -ie "23s/#//" /etc/ssh/sshd_config
+	echo "SSH Protocol has been set to 2"
+	printf "\n"
+else
+	echo "SSH Protocol has already been set to 2, " 
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.2 Set LogLevel to INFO
+echo -e "\e[4m10.2 : Set LogLevel to INFO\e[0m\n"
+remsshloglevel=`grep "^LogLevel" /etc/ssh/sshd_config`
+if [ "$remsshloglevel" != "LogLevel INFO" ]
+then
+	sed -ie "43s/#//" /etc/ssh/sshd_config
+	echo "LogLevel has been set to INFO"
+	printf "\n"
+else
+	echo "LogLevel has already been set to INFO, " 
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.3 Set Permissions on /etc/ssh/shd_config
+echo -e "\e[4m10.3 : Set Permissions on /etc/ssh/shd_config\e[0m\n"
+remdeterusergroupownership=`grep "^LogLevel" /etc/ssh/sshd_config`
+if [ -z "$remdeterusergroupownership" ]
+then
+	chown root:root /etc/ssh/sshd_config
+	chmod 600 /etc/ssh/sshd_config
+	echo "Permissions have been configured"
+	printf "\n"
+else
+	echo "Permissions have already been configiured correctly, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.4 Disable SSH X11 Forwarding
+echo -e "\e[4m10.4 : Disable SSH X11 Forwarding\e[0m\n"
+remsshx11forwarding=`grep "^X11Forwarding" /etc/ssh/sshd_config`
+if [ "$remsshx11forwarding" != "X11Forwarding no" ]
+then
+	sed -ie "116s/#//" /etc/ssh/sshd_config
+	sed -ie "117s/^/#/" /etc/ssh/sshd_config
+	echo "SSH X11 Forwarding has been disabled"
+	printf "\n"
+else
+	echo "SSH X11 Forwarding has already been disabled, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.5 Set SSH MaxAuthTries to 4 or Less
+echo -e "\e[4m10.5 : Set SSH MaxAuthTries to 4 or Less\e[0m\n"
+maxauthtries=`grep "^MaxAuthTries 4" /etc/ssh/sshd_config`
+if [ "$maxauthtries" != "MaxAuthTries 4" ]
+then
+	sed -ie "50d" /etc/ssh/sshd_config
+	sed -ie "50iMaxAuthTries 4" /etc/ssh/sshd_config
+	echo "MaxAuthTries has been set to 4"
+	printf "\n"
+else
+	echo "MaxAuthTries has already been set to 4, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.6 Set SSH IgnoreRhosts to Yes
+echo -e "\e[4m10.6 : Set SSH IgnoreRhosts to Yes\e[0m\n"
+ignorerhosts=`grep "^IgnoreRhosts" /etc/ssh/sshd_config`
+if [ "$ignorerhosts" != "IgnoreRhosts yes" ]
+then
+	sed -ie "73d" /etc/ssh/sshd_config
+	sed -ie "73iIgnoreRhosts yes" /etc/ssh/sshd_config
+	echo "SSH IgnoreRhosts has been set to Yes"
+	printf "\n"
+else
+	echo "SSH IgnoreRhosts has already been set to Yes, "
+	echo "hence no action will be taken "
+	printf "\n"
+fi
+
+#10.7 Set SSH HostbasedAuthentication to No
+echo -e "\e[4m10.7 : Set SSH HostbasedAuthentication to No\e[0m\n"
+hostbasedauthentication=`grep "^HostbasedAuthentication" /etc/ssh/sshd_config`
+if [ "$hostbasedauthentication" != "HostbasedAuthentication no" ]
+then
+	sed -ie "68d" /etc/ssh/sshd_config
+	sed -ie "68iHostbasedAuthentication no" /etc/ssh/sshd_config
+	echo "SSH HostbasedAuthentication has been set to No"
+	printf "\n"
+else
+	echo "SSH HostbasedAuthentication has already been set to No, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.8 Disable SSH Root Login
+echo -e "\e[4m10.8 : Disable SSH Root Login\e[0m\n"
+remsshrootlogin=`grep "^PermitRootLogin" /etc/ssh/sshd_config`
+if [ "$remsshrootlogin" != "PermitRootLogin no" ]
+then
+	sed -ie "48d" /etc/ssh/sshd_config
+	sed -ie "48iPermitRootLogin no" /etc/ssh/sshd_config
+	echo "SSH Root Login has been disabled"
+	printf "\n"
+else
+	echo "SSH Root Login has already been disabled, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.9 Set SSH PermitEmptyPasswords to No
+echo -e "\e[4m10.9 : Set SSH PermitEmptyPasswords to No\e[0m\n"
+remsshemptypswd=`grep "^PermitEmptyPasswords" /etc/ssh/sshd_config`
+if [ "$remsshemptypswd" != "PermitEmptyPasswords no" ]
+then
+	sed -ie "77d" /etc/ssh/sshd_config
+	sed -ie "77iPermitEmptyPasswords no" /etc/ssh/sshd_config
+	echo "SSH PermitEmptyPasswords has been set to No"
+	printf "\n"
+else
+	echo "SSH PermitEmptyPasswords has already been set to No, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.10 Use Only Approved cipher in Counter Mode
+echo -e "\e[4m10.10 : Set SSH PermitEmptyPasswords to No\e[0m\n"
+remsshcipher=`grep "Ciphers" /etc/ssh/sshd_config`
+if [ "$remsshcipher" != "Ciphers aes128-ctr,aes192-ctr,aes256-ctr" ]
+then
+	sed -ie "36d" /etc/ssh/sshd_config
+	sed -ie "36iCiphers aes128-ctr,aes192-ctr,aes256-ctr" /etc/ssh/sshd_config
+	echo "Approved Ciphers have been set"
+	printf "\n"
+else
+	echo "Approved Ciphers have already been set, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.11 Set Idle Timeout Internval for User Login
+echo -e "\e[4m10.11 : Set Idle Timeout Interval for User Login\e[0m\n"
+remsshcai=`grep "^ClientAliveInterval" /etc/ssh/sshd_config`
+remsshcacm=`grep "^ClientAliveCountMax" /etc/ssh/sshd_config`
+
+if [ "$remsshcai" != "ClientAliveInterval 300" ]
+then
+	sed -ie "127d" /etc/ssh/sshd_config
+	sed -ie "127iClientAliveInterval 300" /etc/ssh/sshd_config
+	echo "ClientAliveInterval has been set to 300"
+	printf "\n"
+else
+	echo "ClientAliveInterval has already been set to 300, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+if [ "$remsshcacm" != "ClientAliveCountMax 0" ]
+then
+	sed -ie "128d" /etc/ssh/sshd_config
+	sed -ie "128iClientAliveCountMax 0" /etc/ssh/sshd_config
+	echo "ClientAliveCountMax has been set to 0"
+	printf "\n"
+else
+	echo "ClientAliveCountMax has already been set to 0, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.12 Limit Access via SSH	
+echo -e "\e[4m10.12 : Limit Access via SSH\e[0m\n"
+remsshalwusrs=`grep "^AllowUsers" /etc/ssh/sshd_config`
+remsshalwgrps=`grep "^AllowGroups" /etc/ssh/sshd_config`
+remsshdnyusrs=`grep "^DenyUsers" /etc/ssh/sshd_config`
+remsshdnygrps=`grep "^DenyGroups" /etc/ssh/sshd_config`
+
+if [ -z "$remsshalwusrs" -o "$remsshalwusrs" == "AllowUsers[[:space:]]" ]
+then
+	echo "AllowUsers user1" >> /etc/ssh/sshd_config
+	echo "User: user1 is now able to access the system via SSH"
+	printf "\n"
+else
+	echo "User: user1 is already able to access the system via SSH, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+if [ -z "$remsshalwgrps" -o "$remsshalwgrps" == "AllowUsers[[:space:]]" ]
+then
+	echo "AllowGroups group1" >> /etc/ssh/sshd_config
+	echo "Group: group1 is now able to access the system via SSH"
+	printf "\n"
+else
+	echo "Group: group1 is already able to access the system via SSH, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+if [ -z "$remsshdnyusrs" -o "$remsshdnyusrs" == "AllowUsers[[:space:]]" ]
+then
+	echo "DenyUsers user2 user3" >> /etc/ssh/sshd_config
+	echo "User: user2 and user3 are now not able to access the system via SSH"
+	printf "\n"
+else
+	echo "User: user2 and user3 are already not able to access the system via SSH, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+if [ -z "$remsshdnygrps" -o "$remsshdnygrps" == "AllowUsers[[:space:]]" ]
+then
+	echo "DenyGroups group2" >> /etc/ssh/sshd_config
+	echo "Group: group2 is now not able to access the system via SSH"
+	printf "\n"
+else
+	echo "Group: group2 is already not able to access the system via SSH, "
+	echo "hence no action will be taken"
+	printf "\n"
+fi
+
+#10.13 Set SSH Banner
+echo -e "\e[4m10.13 : Set SSH Banner\e[0m\n"	
+remsshbanner=`grep "Banner" /etc/ssh/sshd_config | awk '{ print $2 }'`
+
+if [ "$remsshbanner" == "/etc/issue.net" -o "$remsshbanner" == "/etc/issue" ]
+then
+	echo "SSH Banner has already been set, "
+	echo "hence no action will be taken"
+	printf "\n"
+else
+	sed -ie "138d" /etc/ssh/sshd_config
+	sed -ie "138iBanner /etc/issue.net" /etc/ssh/sshd_config
+	echo "SSH Banner has been set"
+	printf "\n"
+fi 
+
+#11.1 Upgrade Password Hashing Algorithm to SHA-512
+echo -e "\e[4m11.1 : Upgrade Password Hashing Algorithm to SHA-512\e[0m\n"
+checkPassAlgo=$(authconfig --test | grep hashing | grep sha512)
+checkPassRegex=".*sha512"
+if [[ $checkPassAlgo =~ $checkPassRegex ]]
+then
+    	echo "The password hashing algorithm is set to SHA-512 as recommended."
+		printf "\n"
+else
+    	authconfig --passalgo=sha512 --update
+	doubleCheckPassAlgo2=$(authconfig --test | grep hashing | grep sha512)
+	doubleCheckPassRegex2=".*sha512"
+	if [[ $doubleCheckPassAlgo2 =~ $doubleCheckPassRegex2 ]]
+	then
+    		echo "The password hashing algorithm is set to SHA-512 as recommended."
+			printf "\n"
+		cat /etc/passwd | awk -F: '($3 >= 1000 && $1 != "test") { print $1 }' | xargs -n 1 chage -d 0
+		if [ $? -eq 0 ]
+		then
+			echo "Users will be required to change their password upon the next log in session."
+			printf "\n"
+		else
+			echo "It seems as if error has occured and that the userID cannot be immediately expired. After a password hashing algorithm update, it is essential to ensure that all the users have changed their passwords."
+			printf "\n"
+		fi
+	else
+		echo "It seems as if an error has occured and the password hashing algorithm cannot be set as SHA-512."
+		printf "\n"
+	fi
+fi
+
+#11.2 Set Password Creation Requirement Parameters Using pam_pwquality
+echo -e "\e[4m11.2 : Set Password Creation Requirement Parameters Using pam_pwquality\e[0m\n"
+pampwquality=$(grep pam_pwquality.so /etc/pam.d/system-auth)
+pampwqualityrequisite=$(grep "password    requisite" /etc/pam.d/system-auth)
+correctpampwquality="password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type="
+if [[ $pampwquality == $correctpampwquality ]]
+then
+	#echo "No remediation needed."
+	echo "Password Creation Requirement Parameters (/etc/pam.d/system-auth) have been set, hence no action will be taken"
+	printf "\n"
+else
+	if [[ -n $pampwqualityrequisite ]]
+	then
+		sed -i 's/.*requisite.*/password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=/' /etc/pam.d/system-auth
+		#echo "Remediation completed."
+		echo "/etc/pam.d/system-auth has been Updated"
+		printf "\n"
+	else
+		echo $correctpampwquality >> /etc/pam.d/system-auth
+		#echo "Remediation completed."
+		echo "/etc/pam.d/system-auth has been Updated"
+		printf "\n"
+	fi
+fi
+
+minlen=$(grep "minlen" /etc/security/pwquality.conf)
+dcredit=$(grep "dcredit" /etc/security/pwquality.conf)
+ucredit=$(grep "ucredit" /etc/security/pwquality.conf)
+ocredit=$(grep "ocredit" /etc/security/pwquality.conf)
+lcredit=$(grep "lcredit" /etc/security/pwquality.conf)
+correctminlen="# minlen = 14"
+correctdcredit="# dcredit = -1"
+correctucredit="# ucredit = -1"
+correctocredit="# ocredit = -1"
+correctlcredit="# lcredit = -1"
+
+if [[ $minlen == $correctminlen && $dcredit == $correctdcredit && $ucredit == $correctucredit && $ocredit == $correctocredit && $lcredit == $correctlcredit ]]
+then
+	#echo "No Remediation needed."
+	echo "Password Creation Requirement Parameters (/etc/security/pwquality.conf) have been set, hence no action will be taken"
+	printf "\n"
+else
+	sed -i -e 's/.*minlen.*/# minlen = 14/' -e 's/.*dcredit.*/# dcredit = -1/' -e  's/.*ucredit.*/# ucredit = -1/' -e 's/.*ocredit.*/# ocredit = -1/' -e 's/.*lcredit.*/# lcredit = -1/' /etc/security/pwquality.conf
+	#echo "Remediation completed."
+	echo "/etc/security/pwquality.conf has been Updated"
+	printf "\n"
+fi
+
+#11.3 Set Lockout for Failed Password Attempts
+echo -e "\e[4m11.3 : Set Lockout for Failed Password Attempts\e[0m\n"
+faillockpassword=$(grep "pam_faillock" /etc/pam.d/password-auth)
+faillocksystem=$(grep "pam_faillock" /etc/pam.d/system-auth)
+
+read -d '' correctpamauth << "BLOCK"
+auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900
+auth        [default=die] pam_faillock.so authfail audit deny=5
+auth        sufficient    pam_faillock.so authsucc audit deny=5
+account     required      pam_faillock.so
+BLOCK
+
+
+if [[ $faillocksystem == "$correctpamauth" && $faillockpassword == "$correctpamauth" ]]
+then
+	#echo "No remediation needed."
+	echo "Lockout for Failed Password Attempts is already set, hence no action will be taken"
+	printf "\n"
+elif [[ $faillocksystem == "$correctpamauth" && $faillockpassword != "$correctpamauth" ]]
+then
+	if [[ -n $faillockpassword ]]
+	then
+		sed -i '/pam_faillock.so/d' /etc/pam.d/password-auth
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/password-auth
+		#echo "Remediation completed."
+		echo "Lockout for Failed Password Attempts has been set"
+		printf "\n"
+	else
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/password-auth
+		#echo "Remediation completed."
+		echo "Lockout for Failed Password Attempts has been set"
+		printf "\n"
+	fi
+elif [[ $faillocksystem != "$correctpamauth" && $faillockpassword == "$correctpamauth" ]]
+then
+	if [[ -n $faillocksystem ]]
+	then
+		sed -i '/pam_faillock.so/d' /etc/pam.d/system-auth
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/system-auth
+		#echo "Remediation completed."
+		echo "Lockout for Failed Password Attempts has been set"
+		printf "\n"
+	else
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/system-auth
+		#echo "Remediation completed."
+		echo "Lockout for Failed Password Attempts has been set"
+		printf "\n"
+	fi
+else
+	if [[ -n $faillocksystem && -z $faillockpassword ]]
+	then
+		sed -i '/pam_faillock.so/d' /etc/pam.d/system-auth
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/system-auth
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/password-auth
+		#echo "Remediation completed."
+		echo "Lockout for Failed Password Attempts has been set"
+		printf "\n"
+	elif [[ -z $faillocksystem && -n $faillockpassword ]]
+	then
+		sed -i '/pam_faillock.so/d' /etc/pam.d/password-auth
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/password-auth
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/system-auth
+		#echo "Remediation completed."
+		echo "Lockout for Failed Password Attempts has been set"
+		printf "\n"
+	elif [[ -n $faillocksystem && -n $faillockpassword ]]
+	then
+		sed -i '/pam_faillock.so/d' /etc/pam.d/system-auth
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/system-auth
+		sed -i '/pam_faillock.so/d' /etc/pam.d/password-auth
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/password-auth
+		#echo "Remediation completed."
+		echo "Lockout for Failed Password Attempts has been set"
+		printf "\n"
+	else
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/system-auth
+		sed -i -e '5i auth        required      pam_faillock.so preauth silent audit deny=5 unlock_time=900' -e '7i auth        [default=die] pam_faillock.so authfail audit deny=5' -e '8i auth        sufficient    pam_faillock.so authsucc audit deny=5' -e '10i account     required      pam_faillock.so' /etc/pam.d/password-auth
+		#echo "Remediation completed."
+		echo "Lockout for Failed Password Attempts has been set"
+		printf "\n"
+	fi
+fi
+
+#11.4 Limit Password Reuse
+echo -e "\e[4m11.4 : Limit Password Reuse\e[0m\n"
+pamlimitpw=$(grep "remember" /etc/pam.d/system-auth)
+existingpamlimitpw=$(grep "password.*sufficient" /etc/pam.d/system-auth)
+if [[ $pamlimitpw == *"remember=5"* ]]
+then
+	#echo "No remediation needed."
+	echo "Password Reuse Limit has been set, hence no action will be taken"
+	printf "\n"
+else
+	if [[ -n $existingpamlimitpw ]]
+	then
+		sed -i 's/password.*sufficient.*/password    sufficient    pam_unix.so sha512 shadow nullok remember=5 try_first_pass use_authtok/' /etc/pam.d/system-auth
+		#echo "Remediation completed."
+		echo "Password Reuse Limit has been set"
+		printf "\n"
+	else
+		sed -i '/password/a password sufficient pam_unix.so remember=5' /etc/pam.d/system-auth
+		#echo "Remediation completed."
+		echo "Password Reuse Limit has been set"
+		printf "\n"
+	fi
+fi 
+
+#11.5 Restrict root Login to System Console
+echo -e "\e[4m11.5 : Restrict root Login to System Console\e[0m\n"
+systemConsole="/etc/securetty"
+systemConsoleCounter=0
+while read -r line; do
+	if [ -n "$line" ]
+	then
+		[[ "$line" =~ ^#.*$ ]] && continue
+		if [ "$line" == "vc/1" ] || [ "$line" == "tty1" ]
+		then
+			systemConsoleCounter=$((systemConsoleCounter+1))
+		else	
+			systemConsoleCounter=$((systemConsoleCounter+1))
+		fi
+	fi
+done < "$systemConsole"
+
+read -d '' correctsyscon << "BLOCKED"
+vc/1
+tty1
+BLOCKED
+
+
+if [ $systemConsoleCounter != 2 ]
+then
+	echo "$correctsyscon" > /etc/securetty
+	#echo "Remediation completed."
+	echo "Root login to System Console has been restricted"
+	printf "\n"
+else
+	#echo "No remediation needed."
+	echo "Root login to System Console has already been restricted, hence no action will be taken"
+	printf "\n"
+fi
+
+#11.6 Restrict Access to the su Command
+echo -e "\e[4m11.6 : Restrict Access to the su Command\e[0m\n"
+pamsu=$(grep pam_wheel.so /etc/pam.d/su | grep required)
+if [[ $pamsu =~ ^#auth.*required ]]
+then
+	sed -i 's/#.*pam_wheel.so use_uid/auth            required        pam_wheel.so use_uid/' /etc/pam.d/su
+	#echo "Remediation completed."
+	echo "Remediation completed, now only users in the wheel group can access the su command"
+	printf "\n"
+else
+	#echo "No remediation needed."
+	echo "Only users in the wheel group can access the su command, hence no action will be taken"
+	printf "\n"
+fi
+
+pamwheel=$(grep wheel /etc/group)
+if [[ $pamwheel =~ ^wheel.*root ]]
+then
+	#echo "No remediation needed."
+	echo "User is already in the wheel group, hence no action will be taken"
+	printf "\n"
+else
+	usermod -aG wheel root
+	#echo "Remediation completed."
+	echo "User has been added to the wheel group"
+	printf "\n"
 fi
 
 printf "\n\n"
