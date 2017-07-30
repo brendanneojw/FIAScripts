@@ -471,6 +471,161 @@ else
 fi 
 
 printf "\n\n"
+#2.6
+echo -e "\e[4m2.6 : Disable chargen-dgram\e[0m\n"
+checkxinetd=`yum list xinetd | grep "Available Packages"`
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence chargen-dgram is not installed"
+else	
+	checkchargendgram=`chkconfig --list chargen-dgram | grep "off"`
+	if [ -n "$checkchargendgram" ]
+	then
+		echo "chargen-dgram is not active, hence no action will be taken"
+	else
+		echo "chargen-dgram is active, it will now be disabled"
+		chkconfig chargen-dgram off
+	fi 
+fi 
+
+printf "\n\n"
+
+# 2.7
+echo -e "\e[4m2.7 : Disable chargen-stream\e[0m\n"
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence chargen-stream is not installed"
+else	
+	checkchargenstream=`chkconfig --list chargen-stream | grep "off"`
+	if [ -n "$checkchargenstream" ]
+	then
+		echo "chargen-stream is not active, hence no action will be taken"
+	else
+		echo "chargen-stream is active, it will now be disabled"
+		chkconfig chargen-stream off
+	fi 
+fi 
+
+printf "\n\n"
+
+# 2.8
+echo -e "\e[4m2.8 : Disable daytime-dgram / daytime-stream\e[0m\n"
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence daytime-dgram is not installed"
+else	
+	checkdaytimedgram=`chkconfig --list daytime-dgram | grep "off"`
+	if [ -n "$checkdaytimedgram" ]
+	then
+	echo "daytime-dgram is not active, hence no action will be taken"
+	else
+	echo "daytime-dgram is active, it will now be disabled"
+	chkconfig daytime-dgram off
+	fi 
+fi
+
+printf "\n"
+
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence daytime-stream is not installed"
+else	
+	checkdaytimestream=`chkconfig --list daytime-stream | grep "off"`
+	if [ -n "$checkdaytimestream" ]
+	then
+		echo "daytime-stream is not active, hence no action will be taken"
+	else
+		echo "daytime-stream is active, it will now be disabled"
+		chkconfig daytime-stream off
+	fi 
+fi 
+
+printf "\n\n"
+
+# 2.9
+echo -e "\e[4m2.9 : Disable echo-dgram / echo-stream\e[0m\n"
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence echo-dgram is not installed"
+else	
+	checkechodgram=`chkconfig --list echo-dgram | grep "off"`
+	if [ -n "$checkechodgram" ]
+	then
+		echo "echo-dgram is not active, hence no action will be taken"
+	else
+		echo "echo-dgram is active, it will now be disabled"
+		chkconfig echo-dgram off
+	fi
+fi
+
+printf "\n"
+
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence echo-stream is not installed"
+else	
+	checkechostream=`chkconfig --list echo-stream | grep "off"`
+	if [ -n "$checkechostream" ]
+	then
+		echo "echo-stream is not active, hence no action will be taken"
+	else
+		echo "echo-stream is active, it will now be disabled"
+		chkconfig echo-stream off
+	fi 
+fi
+
+printf "\n\n"
+# 2.10
+echo -e "\e[4m2.10 : Disable tcpmux-server\e[0m\n"
+if [ -n "$checkxinetd" ]
+then
+	echo "Xinetd is not installed, hence tcpmux-server is not installed"
+else	
+	checktcpmuxserver=`chkconfig --list tcpmux-server | grep "off"`
+	if [ -n "$checktcpmuxserver" ]
+	then
+		echo "tcpmux-server is not active, hence no action will be taken"
+	else
+		echo "tcpmux-server is active, it will now be disabled"
+		chkconfig tcpmux-server off
+	fi 
+fi 
+
+printf "\n\n"
+
+# 3.1
+echo -e "\e[4m3.1 : Set Daemon umask\e[0m\n"
+umaskcheck=`grep ^umask /etc/sysconfig/init`
+if [ -z "$umaskcheck" ]
+then
+	echo "umask 027" > /etc/sysconfig/init
+	echo "umask is now set correctly"
+else
+	echo "umask is not set correctly"
+fi
+
+printf "\n\n"
+# 3.2
+echo -e "\e[4m3.2 : Remove the X Window System\e[0m\n"
+checkxsystem=`ls -l /etc/systemd/system/default.target | grep graphical.target`
+checkxsysteminstalled=`rpm  -q xorg-x11-server-common | grep "not installed"`
+
+if [ -n "$checkxsystem" ]
+then
+	if [ -z "$checkxsysteminstalled" ]
+	then
+		rm '/etc/systemd/system/default.target'
+		ln -s '/usr/lib/systemd/system/multi-user.target' '/etc/systemd/system/default.target'
+		yum remove -y xorg-x11-server-common
+		echo "xorg-x11-server-common is now uninstalled"
+	else
+		echo "xorg-x11-server-common is already uninstalled"
+	fi
+else
+	echo "the default.target is already multi-user.target"
+fi
+
+printf "\n\n"
 
 read -n 1 -s -r -p "Press any key to exit!"
 kill -9 $PPID
