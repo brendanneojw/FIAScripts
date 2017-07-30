@@ -198,6 +198,61 @@ do
 done 	
 
 printf "\n\n"
+# 2.6 to 2.10
+echo -e "\e[4m2.6 to 2.10 : Disable chargen-dgram, daytime-dgram/daytime-stream, echo-dgram/echo-stream and tcpmux-server\e[0m\n"
+chkservices=( "chargen-stream" "daytime-dgram" "daytime-stream" "echo-dgram" "echo-stream" "tcpmux-server" ) 
+
+for eachchkservice in ${chkservices[*]}
+do 
+	checkxinetd=`yum list xinetd | grep "Available Packages"`
+	if [ -n "$checkxinetd" ]
+	then
+		echo "Xinetd is not installed, hence $eachchkservice is not installed"
+	else
+		checkchkservices=`chkconfig --list $eachchkservice | grep "off"`
+		if [ -n "$checkchkservices" ]
+		then 
+			echo "$eachchkservice - PASSED ($eachchkservice is not active) "
+
+		else 
+			echo "$eachchkservice - FAILED ($eachchkservice is active)"
+		fi
+	fi
+done
+
+printf "\n\n"
+
+# 3.1
+echo -e "\e[4m3.1 : Set Daemon umask\e[0m\n"
+checkumask=`grep ^umask /etc/sysconfig/init`
+
+if [ "$checkumask" == "umask 027" ]
+then 
+	echo "Umask - PASSED (umask is set to 027)"
+else 
+	echo "Umask - FAILED (umask is not set to 027)"
+fi
+
+printf "\n\n"
+# 3.2
+echo -e "\e[4m3.2 : Remove the X Window System\e[0m\n"
+checkxsystem=`ls -l /etc/systemd/system/default.target | grep graphical.target` #Must return empty
+checkxsysteminstalled=`rpm  -q xorg-x11-server-common`	#Must return something
+	
+if [ -z "$checkxsystem" -a -z "$checkxsysteminstalled" ]
+then 
+	echo "X Window System - FAILED (Xorg-x11-server-common is installed)"
+elif [ -z "$checkxsystem" -a -n "$checkxsysteminstalled" ]
+then
+	echo "X Window System - PASSED (Xorg-x11-server-common is not installed and is not the default graphical interface)"
+elif [ -n "$checkxsystem" -a -z "$checkxsysteminstalled" ]
+then
+	echo "X Window System - FAILED (Xorg-x11-server-common is not installed and is the default graphical interface)"
+else 
+	echo "X Window System - FAILED (Xorg-x11-server-common is installed and is the default graphical interface)"
+fi
+
+printf "\n\n"
 
 read -n 1 -s -r -p "Press any key to exit!"
 kill -9 $PPID
