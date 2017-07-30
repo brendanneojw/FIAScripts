@@ -606,26 +606,327 @@ fi
 
 printf "\n\n"
 # 3.2
-echo -e "\e[4m3.2 : Remove the X Window System\e[0m\n"
-checkxsystem=`ls -l /etc/systemd/system/default.target | grep graphical.target`
-checkxsysteminstalled=`rpm  -q xorg-x11-server-common | grep "not installed"`
+# echo -e "\e[4m3.2 : Remove the X Window System\e[0m\n"
+# checkxsystem=`ls -l /etc/systemd/system/default.target | grep graphical.target`
+# checkxsysteminstalled=`rpm  -q xorg-x11-server-common | grep "not installed"`
 
-if [ -n "$checkxsystem" ]
+# if [ -n "$checkxsystem" ]
+# then
+	# if [ -z "$checkxsysteminstalled" ]
+	# then
+		# rm '/etc/systemd/system/default.target'
+		# ln -s '/usr/lib/systemd/system/multi-user.target' '/etc/systemd/system/default.target'
+		# yum remove -y xorg-x11-server-common
+		# echo "xorg-x11-server-common is now uninstalled"
+	# else
+		# echo "xorg-x11-server-common is already uninstalled"
+	# fi
+# else
+	# echo "the default.target is already multi-user.target"
+# fi
+
+# printf "\n\n"
+# 3.3
+# echo -e "\e[4m3.3 : Disable AvahiServer\e[0m\n"
+# checkavahi=`systemctl status avahi-daemon | grep inactive`
+# checkavahi1=`systemctl status avahi-daemon | grep disabled`
+
+# if [ -z "$checkavahi" -o -z "$checkavahi1" ]
+# then
+	# systemctl disable avahi-daemon.service avahi-daemon.socket
+	# systemctl stop avahi-daemon.service avahi-daemon.socket
+	# yum remove -y avahi-autoipd avahi-libs avahi
+	# echo "avahi-autoipd, avahi-libs and avahi are now disabled and uninstalled"
+# else
+	# echo "avahi-autoipd, avahi-libs and avahi is already disabled and uninstalled"
+# fi
+
+# printf "\n\n"
+
+# 3.4
+echo -e "\e[4m3.4 : Disable Print Server - cups\e[0m\n"
+checkcupsinstalled=`yum list cups | grep "Available Packages" `
+checkcups=`systemctl status cups | grep inactive`
+checkcups1=`systemctl status cups | grep disabled`
+if [ -z "$checkcupsinstalled" ]
 then
-	if [ -z "$checkxsysteminstalled" ]
+	if [ -z "$checkcups" -o -z "$checkcups1" ]
 	then
-		rm '/etc/systemd/system/default.target'
-		ln -s '/usr/lib/systemd/system/multi-user.target' '/etc/systemd/system/default.target'
-		yum remove -y xorg-x11-server-common
-		echo "xorg-x11-server-common is now uninstalled"
+		systemctl stop cups
+		systemctl disable cups
+		echo "cups is now stopped and disabled"
 	else
-		echo "xorg-x11-server-common is already uninstalled"
+		echo "cups is already stopped and disabled"
 	fi
 else
-	echo "the default.target is already multi-user.target"
+	echo "cups is already not installed"
 fi
 
 printf "\n\n"
+
+# 3.5
+echo -e "\e[4m3.5 : Remove DHCP Server\e[0m\n"
+checkyumdhcp=`yum list dhcp | grep "Available Packages" `
+checkyumdhcpactive=`systemctl status dhcp | grep inactive `
+checkyumdhcpenable=`systemctl status dhcp | grep disabled `
+if [ -z "$checkyumdhcp" ]
+then
+	if [ -z "$checkyumdhcpactive" -o -z "$checkyumdhcpenable" ]
+	then
+		systemctl disable dhcp
+		systemctl stop dhcp
+		yum -y erase dhcp
+		echo "dhcp is now disabled and uninstalled"
+	else
+		echo "dhcp is already disabled and uninstalled"
+	fi
+else
+	echo "dhcp is already not installed"
+fi
+
+printf "\n\n"
+
+# 3.6
+echo -e "\e[4m3.6 : Configure Network Time Protocol (NTP)\e[0m\n"
+checkntpinstalled=`yum list ntp | grep "Installed"`
+
+if [ -z "$checkntpinstalled" ]
+then
+	yum install -y ntp
+	echo "ntp is now installed"
+else
+	echo "ntp is already installed"
+fi
+checkntp1=`grep "^restrict default" /etc/ntp.conf`
+checkntp2=`grep "^restrict -6 default" /etc/ntp.conf`
+checkntp3=`grep "^server" /etc/ntp.conf`
+checkntp4=`grep "ntp:ntp" /etc/sysconfig/ntpd`
+
+if [ "$checkntp1" != "restrict default kod nomodify notrap nopeer noquery" ]
+then
+	sed -ie '8d' /etc/ntp.conf
+	sed -ie '8irestrict default kod nomodify notrap nopeer noquery' /etc/ntp.conf
+	echo "restrict default kod nomodify notrap nopeer noquery is now configured"
+else
+	echo "restrict default kod nomodify notrap nopeer noquery is already configured"
+fi
+printf "\n"
+if [ "$checkntp2" != "restrict -6 default kod nomodify notrap nopeer noquery" ]
+then
+	sed -ie '9irestrict -6 default kod nomodify notrap nopeer noquery' /etc/ntp.conf
+	echo "restrict -6 default kod nomodify notrap nopeer noquery is now configured"
+else
+	echo "restrict -6 default kod nomodify notrap nopeer noquery is already configured"
+fi
+printf "\n"
+if [ -z "$checkntp3" ]
+then
+	sed -ie '21iserver 10.10.10.10' /etc/ntp.conf #Assume 10.10.10.10 is NTP server
+	echo "server is now configured"
+else
+	echo "server is already configured"
+fi
+printf "\n"
+if [ -z "$checkntp4" ]
+then
+	sed -ie '2d' /etc/sysconfig/ntpd
+	echo "1iOPTIONS=\"-u ntp:ntp -p /var/run/ntpd.pid\" " >> /etc/sysconfig/ntpd
+	echo "options is now configured"
+else
+	echo "options is already configured"
+fi
+
+printf "\n\n"
+
+# 3.7
+echo -e "\e[4m3.7 : Remove LDAP\e[0m\n"
+checkldapclientinstalled=`yum list openldap-clients | grep "Available Packages"`
+checkldapserverinstalled=`yum list openldap-servers | grep "Available Packages"`
+
+if [ -z "$checkldapclientinstalled" ]
+then
+	yum  -y erase openldap-clients
+	echo "openldap-clients is now uninstalled"
+else
+	echo "openldap-clients is already uninstalled"
+fi
+printf "\n"
+if [ -z "$checkldapserverinstalled" ]
+then
+	yum -y erase openldap-servers
+	echo "openldap-servers is now uninstalled"
+else
+	echo "openldap-servers is already uninstalled"
+fi
+
+printf "\n\n"
+
+# 3.8
+echo -e "\e[4m3.8 : Disable NFS and RPC\e[0m\n"
+checknfslock=`systemctl is-enabled nfs-lock | grep "disabled"`
+checknfssecure=`systemctl is-enabled nfs-secure | grep "disabled"`
+checkrpcbind=`systemctl is-enabled rpcbind | grep "disabled"`
+checknfsidmap=`systemctl is-enabled nfs-idmap | grep "disabled"`
+checknfssecureserver=`systemctl is-enabled nfs-secure-server | grep "disabled"`
+
+if [ -z "$checknfslock" ]
+then
+	systemctl disable nfs-lock
+	echo "nfs-lock is now disabled"
+else
+	echo "nfs-lock is already disabled"
+fi
+
+printf "\n"
+
+if [ -z "$checknfssecure" ]
+then
+	systemctl disable nfs-secure
+	echo "nfs-secure is now disabled"
+else
+	echo "nfs-secure is already disabled"
+fi
+
+printf "\n"
+
+if [ -z "$checkrpcbind" ]
+then
+	systemctl disable rpcbind
+	echo "rpcbind is now disabled"
+else
+	echo "rpcbind is already disabled"
+fi
+
+printf "\n"
+
+if [ -z "$checknfsidmap" ]
+then
+	systemctl disable nfs-idmap
+	echo "nfs-idmap is now disabled"
+else
+	echo "nfs-idmap is already disabled"
+fi
+
+printf "\n"
+
+if [ -z "$checknfssecureserver" ]
+then
+	systemctl disable nfs-secure-server
+	echo "nfs-secure-server is now disabled"
+else
+	echo "nfs-secure-server is already disabled"
+fi
+
+printf "\n\n"
+
+# 3.9
+echo -e "\e[4m3.9 : Remove DNS, FTP, HTTP, HTTP-Proxy, SNMP\e[0m\n"
+checkyumdns=`yum list bind | grep "Available Packages" `
+checkdns=`systemctl status named | grep inactive`
+checkdns1=`systemctl status named | grep disabled`
+if [ -z "$checkyumdns" ]
+then
+	if [ -z "$checkdns" -o -z "$checkdns1" ]
+	then
+		systemctl stop named
+		systemctl disable named
+		echo "dns service is now disabled and stopped"
+	else
+		echo "dns service is already disabled and stopped"
+	fi
+else
+	echo "dns service is already not installed"
+fi
+
+printf "\n"
+
+checkyumftp=`yum list vsftpd | grep "Available Packages" `
+checkftp=`systemctl status vsftpd | grep inactive`
+checkftp1=`systemctl status vsftpd | grep disabled`
+if [ -z "$checkyumftp" ]
+then
+	if [ -z "$checkftp" -o -z "$checkftp1" ]
+	then
+		systemctl stop vsftpd
+		systemctl disable vsftpd
+		echo "vsftpd service is now disabled and stopped"
+	else
+		echo "vsftpd service is already disabled and stopped"
+	fi
+else
+	echo "vsftpd service is already not installed"
+fi
+
+printf "\n"
+
+checkyumhttp=`yum list httpd | grep "Available Packages" `
+checkhttp=`systemctl status httpd | grep inactive`
+checkhttp1=`systemctl status httpd | grep disabled`
+if [ -z "$checkyumhttp" ]
+then
+	if [ -z "$checkhttp" -o -z "$checkhttp1" ]
+	then
+		systemctl stop httpd
+		systemctl disable httpd
+		echo "httpd service is now disabled and stopped"
+	else
+		echo "httpd service is already disabled and stopped"
+	fi
+else
+	echo "httpd service is already not installed"
+fi
+
+printf "\n"
+
+checkyumsquid=`yum list squid | grep "Available Packages" `
+checksquid=`systemctl status squid | grep inactive`
+checksquid1=`systemctl status squid | grep disabled`
+if [ -z "$checkyumsquid" ]
+then
+	if [ -z "$checksquid" -o -z "$checksquid1" ]
+	then
+		systemctl stop squid
+		systemctl disable squid
+		echo "squid service is now disabled and stopped"
+	else
+		echo "squid service is already disabled and stopped"
+	fi
+else
+	echo "squid service is already not installed"
+fi
+
+printf "\n"
+
+checkyumsnmp=`yum list net-snmp | grep "Available Packages" `
+checksnmp=`systemctl status snmpd | grep inactive`
+checksnmp1=`systemctl status snmpd | grep disabled`
+if [ -z "$checkyumsnmp" ]
+	then
+	if [ -z "$checksnmp" -o -z "$checsnmp1" ]
+	then
+		systemctl stop snmpd
+		systemctl disable snmpd
+		echo "snmpd service is now disabled and stopped"
+	else
+		echo "snmpd service is already disabled and stopped"
+	fi
+else
+	echo "snmpd service is already not installed"
+fi
+
+printf "\n\n"
+
+# 3.10
+echo -e "\e[4m3.10 : Configure Mail Transfer Agent for Local-Only Mode\e[0m\n"
+checkmta=`netstat -an | grep LIST | grep "127.0.0.1:25[[:space:]]"`
+
+if [ -z "$checkmta" ]
+then
+	sed -ie '116iinet_interfaces = localhost' /etc/postfix/main.cf
+	echo "Mail transfer agent is now configured for local-only mode"
+else
+	echo "Mail transfer agent is already configured for local-only mode"
+fi
 
 read -n 1 -s -r -p "Press any key to exit!"
 kill -9 $PPID
